@@ -1,0 +1,64 @@
+@page "/student/dashboard"
+@layout DevRoadmap.Components.Layout.Student.StudentLayout
+@using DevRoadmap.Components.Layout.Global
+@using DevRoadmap.Components.Layout.Student.Dashboard
+
+<PageTitle>Dashboard</PageTitle>
+
+<div>
+    <div class="page-header">
+        <div>
+            <p class="page-title">Olá, Vanessa!</p>
+            <p class="page-subtitle">Você está a 3 passos do próximo certificado</p>
+        </div>
+
+        <button class="button button-gold button-small">+ Nova Trilha</button>
+    </div>
+
+    <NextStop/>
+
+    <div class="grid grid-4">
+        <DashboardCard
+            Title="Progresso Geral"
+            Value="68%"
+            Status="↑ +4% esta semana"
+            CardClass="card-gold"
+            ValueClass="cv-g"
+            StatusClass="cs-up"
+            ShowProgress="true"
+            Progress="68" />
+
+        <DashboardCard
+            Title="Média Geral"
+            Value="8.4"
+            Status="acima da mínima"
+            ValueClass="cv-gr"
+            StatusClass="cs-up" 
+            BorderColor="padding:18px;
+                border-color:rgba(82,196,138,.25);" />
+
+        <DashboardCard
+            Title="Pendências"
+            Value="3"
+            Status="2 avaliações + 1 projeto"
+            ValueClass="cv-o"
+            StatusClass="cs-dn"
+            BorderColor="rgba(249,115,22,.25)" />
+
+        <DashboardCard
+            Title="Certificados"
+            Value="2"
+            Status="1 em andamento"
+            ValueClass="cv-g" />
+    </div>
+
+    <div class="grid grid-3">
+        <EvolutionProgress/>
+        <SkillsAcquired/>
+    </div>
+
+    <div class="grid grid-2">
+        <OngoingTracks/>
+        <Pendency/>
+    </div>
+</div>

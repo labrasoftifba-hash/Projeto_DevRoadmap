@@ -1,0 +1,37 @@
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.page-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.page-subtitle {
+    margin-top: -18px;
+
+    font-size: 14px;
+
+    color: var(--t2);
+}
+
+.grid {
+    display: grid;
+
+    gap: 11px;
+    margin-bottom: 13px;
+}
+
+.grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.grid-3 {
+    grid-template-columns: 2fr 1fr;
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}

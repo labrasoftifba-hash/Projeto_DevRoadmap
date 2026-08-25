@@ -1,0 +1,63 @@
+.main {
+    margin-left: 210px;
+    padding:18px 20px
+}
+
+.header-title {
+    font-size: 18px;
+}
+
+.header-action {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    font-size: 19px;
+
+    color: var(--t2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+    cursor: pointer;
+}
+.header-action:hover {
+    color: var(--text);
+    border-color: var(--b2);
+}
+
+.notification-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+
+    width: 6px;
+    height: 6px;
+
+    background: var(--orange);
+
+    border-radius: 50%;
+}
+
+.header-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    color: var(--gold2);
+    background: var(--gdim);
+    border: 1px solid var(--gold);
+
+    border-radius: 50%;
+}

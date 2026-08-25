@@ -1,0 +1,141 @@
+.dashboard-card {
+    padding: 15px;
+
+    background: var(--bg2);
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+    box-shadow: 0 0 18px rgba(255, 170, 0, .04);
+    transition: box-shadow .2s, border-color .2s;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 0 28px rgba(255, 170, 0, .09);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 11px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: var(--t2);
+}
+
+.dashboard-row {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+    padding: 9px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.dashboard-row:last-child {
+    border-bottom: none;
+}
+
+.trail-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 32px;
+    height: 32px;
+
+    border-radius: 8px;
+}
+
+.trail-content {
+    flex: 1;
+}
+
+.trail-header {
+    display: flex;
+    justify-content: space-between;
+
+    margin-bottom: 3px;
+}
+
+.trail-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.trail-percent {
+    font-size: 14px;
+    font-weight: 700;
+
+    color: var(--gold2);
+}
+
+.progress-bar {
+    height: 5px;
+
+    margin-top: 5px;
+    overflow: hidden;
+
+    background: var(--bg4);
+
+    border-radius: 3px;
+}
+
+.progress-fill {
+    height: 100%;
+
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+
+    border-radius: 3px;
+}
+
+.trail-next {
+    margin-top: 4px;
+
+    font-size: 13px;
+
+    color: var(--blue);
+}
+
+.trail-arrow {
+    font-size: 10px;
+}
+
+.trail-icon-blue {
+    background: rgba(79, 140, 255, .12);
+}
+
+.trail-icon-green {
+    background: rgba(82, 196, 138, .12);
+}
+
+.trail-icon-gold {
+    background: rgba(201, 149, 42, .12);
+}
+
+.trail-icon i {
+    font-size: 19px;
+}
+
+.icon-blue {
+    color: var(--blue);
+}
+
+.icon-green {
+    color: var(--green);
+}
+
+.icon-gold {
+    color: var(--gold2);
+}
+
+.link-blue {
+    text-decoration: none;
+
+    color: var(--blue);
+}

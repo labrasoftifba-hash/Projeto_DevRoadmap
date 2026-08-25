@@ -1,0 +1,117 @@
+.dashboard-card {
+    padding: 15px;
+
+    background: var(--bg2);
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+    box-shadow: 0 0 18px rgba(255, 170, 0, .04);
+    transition: box-shadow .2s, border-color .2s;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 0 28px rgba(255, 170, 0, .09);
+}
+
+.card-header {
+    margin-bottom: 11px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: var(--t2);
+}
+
+.skills-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 11px;
+}
+
+.skill-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.skill-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 4px;
+}
+
+.skill-info {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+}
+
+.skill-icon {
+    font-size: 14px;
+}
+
+.skill-name {
+    font-size: 12px;
+    font-weight: 600;
+
+    color: var(--text);
+}
+
+.skill-value {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.skill-bar {
+    height: 6px;
+
+    overflow: hidden;
+
+    background: var(--bg4);
+
+    border-radius: 3px;
+}
+
+.skill-fill {
+    height: 100%;
+
+    border-radius: 3px;
+    opacity: .85;
+}
+
+.skill-blue {
+    color: var(--blue);
+}
+
+.skill-green {
+    color: var(--green);
+}
+
+.skill-gold {
+    color: var(--gold2);
+}
+
+.skill-orange {
+    color: var(--orange);
+}
+
+.skill-blue-bg {
+    background: var(--blue);
+}
+
+.skill-green-bg {
+    background: var(--green);
+}
+
+.skill-gold-bg {
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+
+    opacity: 1;
+}
+
+.skill-orange-bg {
+    background: var(--orange);
+}

@@ -1,0 +1,134 @@
+circle {
+    fill: none;
+
+    stroke-width: 5;
+}
+
+.next-stop {
+    position: relative;
+
+    padding: 17px 19px;
+    margin-bottom: 14px;
+
+    background: linear-gradient(135deg, var(--gdim2), var(--bgwarm2));
+    border: 1px solid var(--gold);
+
+    border-radius: 12px;
+}
+
+.next-stop::before {
+    position: absolute;
+    top: -28px;
+    right: -28px;
+
+    width: 110px;
+    height: 110px;
+
+    content: "";
+    background: rgba(201, 149, 42, .06);
+
+    border-radius: 50%;
+}
+
+.next-stop .button {
+    margin-top: 5px;
+}
+
+.progress-circle {
+    position: absolute;
+    top: 0;
+    right: 10px;
+}
+
+.circle-progress {
+    transform: rotate(-90deg);
+    transform-origin: center;
+}
+
+.progress-circle-background {
+    stroke: var(--bg4);
+}
+
+.progress-circle-bar {
+    stroke: var(--gold);
+
+    stroke-linecap: round;
+    stroke-dasharray: 118.4 150.8;
+    stroke-dashoffset: 37.6;
+}
+
+.progress-text {
+    font-size: 15px;
+    font-weight: 700;
+    text-anchor: middle;
+
+    fill: var(--gold2);
+}
+
+.ns-label {
+    margin-bottom: 5px;
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+
+    color: var(--gold);
+}
+
+.ns-label i {
+    font-size: 13px;
+}
+
+.ns-title {
+    margin-bottom: 3px;
+
+    font-size: 19px;
+    font-weight: 700;
+
+    color: var(--gold2);
+}
+
+.ns-subtitle {
+    margin-bottom: 12px;
+
+    font-size: 14px;
+
+    color: var(--t2);
+}
+
+.ns-steps {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+    margin-bottom: 13px;
+}
+
+.ns-step {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 14px;
+
+    color: var(--t2);
+}
+
+.ns-step i {
+    font-size: 16px;
+
+    color: var(--green);
+}
+
+.is-locked {
+    color: var(--t3);
+}
+
+.is-locked i {
+    color: var(--t3);
+}
+
+.icon-button {
+    font-size: 20px;
+}

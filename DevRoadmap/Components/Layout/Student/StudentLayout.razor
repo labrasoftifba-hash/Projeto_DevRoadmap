@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div>
+        <NavStudent />
+    </div>
+
+    <header class="main header">
+        <h1 class="header-title">Painel</h1>
+
+        <button class="header-action">
+            <i class="ti ti-sun-high"/>
+        </button>
+
+        <button class="header-action">
+            <i class="ti ti-bell"/>
+            <div class="notification-dot"/>
+        </button>
+        
+        <div class="header-avatar">VV</div>
+    </header>
+
+    <main class="main">
+        <article>
+            @Body
+        </article>
+    </main>
+</div>

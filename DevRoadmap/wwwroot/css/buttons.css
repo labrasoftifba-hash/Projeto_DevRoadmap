@@ -1,0 +1,48 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 7px 15px;
+
+    border: none;
+    border-radius: 7px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition: .12s;
+
+    text-decoration: none;
+}
+
+.button-gold {
+    background: linear-gradient(135deg,var(--gold),var(--gold2));
+    color: var(--black);
+}
+.button-gold:hover {
+    opacity: .9;
+}
+
+.button-outline {
+    border: 1px solid var(--b2);
+    background: transparent;
+    color: var(--t2);
+}
+.button-outline:hover {
+    border-color: var(--b3);
+    color: var(--gold2);
+}
+
+.button-solid {
+    background: var(--bgwarm);
+}
+
+.button-small {
+    padding:5px 11px;
+    font-size:14px
+}

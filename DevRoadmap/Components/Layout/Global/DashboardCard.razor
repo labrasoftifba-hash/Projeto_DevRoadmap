@@ -1,0 +1,32 @@
+<div class="card @CardClass" style="@BorderStyle">
+    <div class="cl">@Title</div>
+
+    <div class="cv @ValueClass">@Value</div>
+
+    @if (ShowProgress)
+    {
+        <div class="bar">
+            <div class="barf" style="width:@($"{Progress}%")"></div>
+        </div>
+    }
+
+    <div class="cs @StatusClass">@Status</div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Status { get; set; } = "";
+
+    [Parameter] public string CardClass { get; set; } = "";
+    [Parameter] public string ValueClass { get; set; } = "";
+    [Parameter] public string StatusClass { get; set; } = "";
+
+    [Parameter] public bool ShowProgress { get; set; } = false;
+    [Parameter] public int Progress { get; set; }
+
+    [Parameter] public string BorderColor { get; set; } = "";
+
+    private string BorderStyle =>
+        string.IsNullOrWhiteSpace(BorderColor) ? "" : $"border-color:{BorderColor}";
+}
