@@ -1,0 +1,318 @@
+@page "/confirmar-email"
+@using System.ComponentModel.DataAnnotations
+@using DevRoadmap.Services
+@inject CadastroService CadastroService
+@inject RecuperacaoSenhaService RecuperacaoSenhaService
+@inject NavigationManager Navigation
+
+<PageTitle>@(FluxoRecuperacao ? "Confirmar código" : "Confirmar e-mail") - DevRoadmap</PageTitle>
+
+<main class="auth-page">
+    <section class="auth-card" aria-labelledby="confirmacao-title">
+        <header class="auth-brand">
+            <div class="auth-logo" aria-hidden="true">DR</div>
+            <h1>DevRoadmap</h1>
+            <p>GPS do aprendizado para Devs</p>
+        </header>
+
+        <div class="auth-divider"></div>
+
+        <div class="verification-icon" aria-hidden="true">✉</div>
+        <h2 id="confirmacao-title">@Titulo</h2>
+        <p class="auth-description">
+            Enviamos um código para <strong>@EmailExibido</strong>.
+            @TextoDescricao
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Mensagem))
+        {
+            <div class="alert @(ConfirmacaoConcluida ? "alert-success" : "alert-info")" role="status">
+                @Mensagem
+            </div>
+        }
+
+        @if (ConfirmacaoConcluida)
+        {
+            <a class="auth-submit auth-submit-link" href="/login">
+                Ir para o login
+            </a>
+        }
+        else if (FluxoRecuperacao && string.IsNullOrWhiteSpace(Model?.Email))
+        {
+            <div class="alert alert-info" role="status">
+                Para sua segurança, inicie novamente a solicitação de recuperação.
+            </div>
+            <a class="auth-submit auth-submit-link" href="/recuperar-senha">
+                Solicitar código
+            </a>
+        }
+        else
+        {
+            <EditForm Model="Model" OnValidSubmit="HandleConfirmacao" FormName="confirmar-codigo">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="auth-validation-summary" />
+
+                @if (FluxoRecuperacao)
+                {
+                    <InputHidden @bind-Value="Model!.FluxoRecuperacao" />
+                    <InputHidden @bind-Value="Model!.Email" />
+                }
+                else
+                {
+                    <div class="auth-field">
+                        <label for="email">E-mail <span aria-hidden="true">*</span></label>
+                        <InputText id="email" type="email" class="form-control" autocomplete="email"
+                                   @bind-Value="Model!.Email" />
+                        <ValidationMessage For="@(() => Model!.Email)" />
+                    </div>
+                }
+
+                <div class="verification-code" aria-label="Código de confirmação de seis dígitos">
+                    <InputText class="verification-digit" aria-label="Primeiro dígito"
+                               inputmode="numeric" maxlength="1" autocomplete="one-time-code"
+                               @bind-Value="Model!.Codigo1" />
+                    <InputText class="verification-digit" aria-label="Segundo dígito"
+                               inputmode="numeric" maxlength="1"
+                               @bind-Value="Model!.Codigo2" />
+                    <InputText class="verification-digit" aria-label="Terceiro dígito"
+                               inputmode="numeric" maxlength="1"
+                               @bind-Value="Model!.Codigo3" />
+                    <InputText class="verification-digit" aria-label="Quarto dígito"
+                               inputmode="numeric" maxlength="1"
+                               @bind-Value="Model!.Codigo4" />
+                    <InputText class="verification-digit" aria-label="Quinto dígito"
+                               inputmode="numeric" maxlength="1"
+                               @bind-Value="Model!.Codigo5" />
+                    <InputText class="verification-digit" aria-label="Sexto dígito"
+                               inputmode="numeric" maxlength="1"
+                               @bind-Value="Model!.Codigo6" />
+                </div>
+
+                <button type="submit" class="auth-submit" disabled="@Processando">
+                    @(FluxoRecuperacao ? "Verificar código" : "Confirmar e-mail")
+                </button>
+            </EditForm>
+
+            <p class="verification-resend">
+                Não recebeu o código?
+                <button type="button" class="auth-link-button" @onclick="HandleReenvio"
+                        disabled="@Processando">
+                    Reenviar código
+                </button>
+            </p>
+        }
+
+        <div class="auth-footer-divider"></div>
+        <p class="auth-switch">
+            @if (FluxoRecuperacao)
+            {
+                <a href="/recuperar-senha">Voltar para redefinição de senha</a>
+            }
+            else
+            {
+                <a class="auth-link-button muted-link" href="/cadastro">Voltar ao cadastro</a>
+            }
+        </p>
+    </section>
+</main>
+
+@code {
+    [SupplyParameterFromForm(FormName = "confirmar-codigo")]
+    private ConfirmacaoModel? Model { get; set; }
+
+    [SupplyParameterFromQuery(Name = "fluxo")]
+    private string? Fluxo { get; set; }
+
+    [SupplyParameterFromQuery(Name = "token")]
+    private string? TokenFluxoRecuperacao { get; set; }
+
+    private string Mensagem = string.Empty;
+    private bool ConfirmacaoConcluida;
+    private bool Processando;
+
+    private bool FluxoRecuperacao =>
+        string.Equals(Model?.FluxoRecuperacao, "recuperacao", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Fluxo, "recuperacao", StringComparison.OrdinalIgnoreCase);
+
+    private string EmailExibido =>
+        Model?.Email ?? string.Empty;
+
+    private string Titulo =>
+        FluxoRecuperacao ? "Verifique seu e-mail" : "Confirme seu e-mail";
+
+    private string TextoDescricao =>
+        FluxoRecuperacao
+            ? "Digite o código abaixo para continuar com a redefinição da senha."
+            : "Digite o código abaixo para confirmar seu endereço.";
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        if (string.Equals(Fluxo, "recuperacao", StringComparison.OrdinalIgnoreCase))
+        {
+            Model.FluxoRecuperacao = "recuperacao";
+            if (RecuperacaoSenhaService.TentarObterEmailFluxo(TokenFluxoRecuperacao, out var email))
+            {
+                Model.Email = email;
+                Mensagem = "Se houver uma conta verificada com esse endereço, o código será enviado.";
+            }
+            else
+            {
+                Mensagem = "Esta solicitação expirou ou não é válida. Inicie novamente a recuperação de senha.";
+            }
+        }
+    }
+
+    private void HandleConfirmacao()
+    {
+        var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+        Processando = true;
+
+        try
+        {
+            var codigo = string.Concat(
+                model.Codigo1,
+                model.Codigo2,
+                model.Codigo3,
+                model.Codigo4,
+                model.Codigo5,
+                model.Codigo6);
+
+            if (FluxoRecuperacao)
+            {
+                var confirmacao = RecuperacaoSenhaService.ConfirmarCodigo(model.Email, codigo);
+                if (confirmacao.Resultado == ResultadoCodigoRecuperacao.Confirmado
+                    && confirmacao.TokenAutorizacao is not null)
+                {
+                    Navigation.NavigateTo(
+                        $"/redefinir-senha?token={Uri.EscapeDataString(confirmacao.TokenAutorizacao)}");
+                    return;
+                }
+
+                Mensagem = confirmacao.Resultado switch
+                {
+                    ResultadoCodigoRecuperacao.CodigoExpirado =>
+                        "O código expirou. Solicite outro código para continuar.",
+                    ResultadoCodigoRecuperacao.LimiteTentativasAtingido =>
+                        "O limite de tentativas foi atingido. Solicite outro código.",
+                    _ => "Não foi possível validar o código. Confira os dados ou solicite outro código."
+                };
+                LimparCodigo();
+                return;
+            }
+
+            var resultadoCadastro = CadastroService.ConfirmarEmail(model.Email, codigo);
+            ConfirmacaoConcluida = resultadoCadastro == ResultadoConfirmacaoEmail.Confirmado;
+            Mensagem = resultadoCadastro switch
+            {
+                ResultadoConfirmacaoEmail.Confirmado =>
+                    "E-mail confirmado. Agora você já pode entrar na sua conta.",
+                ResultadoConfirmacaoEmail.CodigoInvalido =>
+                    "O código informado não é válido. Confira os números e tente novamente.",
+                ResultadoConfirmacaoEmail.CodigoExpirado =>
+                    "Este código expirou. Solicite um novo código.",
+                ResultadoConfirmacaoEmail.LimiteTentativasAtingido =>
+                    "O limite de tentativas foi atingido. Aguarde antes de solicitar outro código.",
+                _ => "Não foi possível confirmar este e-mail. Confira os dados ou solicite outro código."
+            };
+            LimparCodigo();
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private async Task HandleReenvio()
+    {
+        var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+        Processando = true;
+
+        try
+        {
+            if (FluxoRecuperacao)
+            {
+                await RecuperacaoSenhaService.SolicitarCodigoAsync(model.Email);
+                Mensagem = "Se houver uma conta verificada com esse endereço, um novo código será enviado. Aguarde até 60 segundos entre solicitações.";
+                LimparCodigo();
+                return;
+            }
+
+            if (!new EmailAddressAttribute().IsValid(model.Email))
+            {
+                Mensagem = "Informe um endereço de e-mail válido para solicitar o código.";
+                return;
+            }
+
+            var resultado = await CadastroService.ReenviarCodigoAsync(model.Email);
+            Mensagem = resultado switch
+            {
+                ResultadoConfirmacaoEmail.CodigoReenviado =>
+                    "Enviamos um novo código. Ele substitui o código anterior.",
+                ResultadoConfirmacaoEmail.ReenvioAguardando =>
+                    "Aguarde pelo menos 60 segundos antes de solicitar outro código.",
+                ResultadoConfirmacaoEmail.ReenvioFalhou =>
+                    "Não conseguimos enviar o código agora. Tente novamente mais tarde.",
+                _ => "Não foi possível reenviar o código para os dados informados."
+            };
+
+            if (resultado == ResultadoConfirmacaoEmail.CodigoReenviado)
+            {
+                LimparCodigo();
+            }
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private void LimparCodigo()
+    {
+        if (Model is null)
+        {
+            return;
+        }
+
+        Model.Codigo1 = string.Empty;
+        Model.Codigo2 = string.Empty;
+        Model.Codigo3 = string.Empty;
+        Model.Codigo4 = string.Empty;
+        Model.Codigo5 = string.Empty;
+        Model.Codigo6 = string.Empty;
+    }
+
+    private sealed class ConfirmacaoModel
+    {
+        public string FluxoRecuperacao { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Informe seu e-mail.")]
+        [EmailAddress(ErrorMessage = "Informe um e-mail válido.")]
+        [StringLength(250, ErrorMessage = "O e-mail deve ter no máximo 250 caracteres.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preencha os seis dígitos do código.")]
+        [RegularExpression(@"^\d$", ErrorMessage = "Cada posição deve conter um número.")]
+        public string Codigo1 { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preencha os seis dígitos do código.")]
+        [RegularExpression(@"^\d$", ErrorMessage = "Cada posição deve conter um número.")]
+        public string Codigo2 { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preencha os seis dígitos do código.")]
+        [RegularExpression(@"^\d$", ErrorMessage = "Cada posição deve conter um número.")]
+        public string Codigo3 { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preencha os seis dígitos do código.")]
+        [RegularExpression(@"^\d$", ErrorMessage = "Cada posição deve conter um número.")]
+        public string Codigo4 { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preencha os seis dígitos do código.")]
+        [RegularExpression(@"^\d$", ErrorMessage = "Cada posição deve conter um número.")]
+        public string Codigo5 { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Preencha os seis dígitos do código.")]
+        [RegularExpression(@"^\d$", ErrorMessage = "Cada posição deve conter um número.")]
+        public string Codigo6 { get; set; } = string.Empty;
+    }
+}

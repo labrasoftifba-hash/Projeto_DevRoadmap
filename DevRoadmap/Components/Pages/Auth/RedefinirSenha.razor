@@ -1,0 +1,143 @@
+@page "/redefinir-senha"
+@using System.ComponentModel.DataAnnotations
+@using DevRoadmap.Services
+@inject RecuperacaoSenhaService RecuperacaoSenhaService
+@inject NavigationManager Navigation
+
+<PageTitle>Redefinição de senha - DevRoadmap</PageTitle>
+
+<main class="auth-page">
+    <section class="auth-card" aria-labelledby="reset-title">
+        <header class="auth-brand">
+            <div class="auth-logo" aria-hidden="true">DR</div>
+            <h1>DevRoadmap</h1>
+            <p>GPS do aprendizado para Devs</p>
+        </header>
+
+        <div class="auth-divider"></div>
+
+        @if (SenhaRedefinida)
+        {
+            <div class="reset-success" role="status">
+                <h2 id="reset-title">Senha redefinida</h2>
+                <p>Sua senha foi atualizada. Use a nova senha para entrar na sua conta.</p>
+            </div>
+            <a class="auth-submit auth-submit-link" href="/login">
+                Voltar para login
+            </a>
+        }
+        else if (!TokenAutorizacaoValido)
+        {
+            <h2 id="reset-title">Redefinição de senha</h2>
+            <p class="auth-description">A validação do código é necessária antes de redefinir a senha.</p>
+            <a class="auth-submit auth-submit-link" href="/recuperar-senha">
+                Solicitar novo código
+            </a>
+        }
+        else
+        {
+            <h2 id="reset-title">Redefinição de senha</h2>
+            <p class="auth-description">Crie uma nova senha para acessar sua conta.</p>
+
+            @if (!string.IsNullOrWhiteSpace(Mensagem))
+            {
+                <div class="alert alert-danger" role="alert">@Mensagem</div>
+            }
+
+            <EditForm Model="Model" OnValidSubmit="SalvarNovaSenha" FormName="redefinir-senha">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="auth-validation-summary" />
+                <InputHidden @bind-Value="Model!.TokenAutorizacao" />
+
+                <div class="auth-field">
+                    <label for="senha-nova">Nova senha <span aria-hidden="true">*</span></label>
+                    <InputText id="senha-nova" type="password" class="form-control"
+                               autocomplete="new-password" @bind-Value="Model!.SenhaNova" />
+                    <ValidationMessage For="@(() => Model!.SenhaNova)" />
+                </div>
+
+                <div class="auth-field">
+                    <label for="confirmar-senha">Confirme sua senha <span aria-hidden="true">*</span></label>
+                    <InputText id="confirmar-senha" type="password" class="form-control"
+                               autocomplete="new-password" @bind-Value="Model!.ConfirmacaoSenha" />
+                    <ValidationMessage For="@(() => Model!.ConfirmacaoSenha)" />
+                </div>
+
+                <button type="submit" class="auth-submit" disabled="@Processando">
+                    @(Processando ? "Salvando..." : "Redefinir senha")
+                </button>
+            </EditForm>
+        }
+
+        @if (!SenhaRedefinida)
+        {
+            <p class="auth-switch"><a href="/login">Voltar para login</a></p>
+        }
+    </section>
+</main>
+
+@code {
+    [SupplyParameterFromForm(FormName = "redefinir-senha")]
+    private ResetModel? Model { get; set; }
+
+    [SupplyParameterFromQuery(Name = "token")]
+    private string? TokenAutorizacaoQuery { get; set; }
+
+    private string Mensagem = string.Empty;
+    private bool SenhaRedefinida;
+    private bool Processando;
+
+    private bool TokenAutorizacaoValido =>
+        RecuperacaoSenhaService.TokenAutorizacaoValido(Model?.TokenAutorizacao);
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        Model.TokenAutorizacao = TokenAutorizacaoQuery ?? Model.TokenAutorizacao;
+    }
+
+    private void SalvarNovaSenha()
+    {
+        var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+        Processando = true;
+
+        try
+        {
+            var resultado = RecuperacaoSenhaService.RedefinirSenha(
+                model.TokenAutorizacao,
+                model.SenhaNova);
+            SenhaRedefinida = resultado == ResultadoRedefinicaoSenha.Redefinida;
+            Mensagem = resultado switch
+            {
+                ResultadoRedefinicaoSenha.IgualAtual =>
+                    "A nova senha não pode ser igual à senha atual.",
+                ResultadoRedefinicaoSenha.CodigoExpirado =>
+                    "A autorização expirou. Solicite um novo código de recuperação.",
+                _ => string.Empty
+            };
+
+            if (resultado == ResultadoRedefinicaoSenha.CodigoExpirado)
+            {
+                Navigation.NavigateTo("/recuperar-senha");
+            }
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private sealed class ResetModel
+    {
+        [Required]
+        public string TokenAutorizacao { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Informe a nova senha.")]
+        [MinLength(8, ErrorMessage = "A senha deve ter pelo menos 8 caracteres.")]
+        public string SenhaNova { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirme a nova senha.")]
+        [Compare(nameof(SenhaNova), ErrorMessage = "As senhas informadas não coincidem.")]
+        public string ConfirmacaoSenha { get; set; } = string.Empty;
+    }
+}

@@ -12,12 +12,15 @@ namespace DevRoadmap.Repositories
         protected readonly string _stringConnection;
         public BaseRepository(IConfiguration configuration)
         {
-            _stringConnection = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            if(_stringConnection == null)
-            {
-                throw new ArgumentNullException(nameof(_stringConnection));
-            }
+            if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "A connection string 'DefaultConnection' não foi configurada.");
+        }
+
+            _stringConnection = connectionString;
         }
     }
 }

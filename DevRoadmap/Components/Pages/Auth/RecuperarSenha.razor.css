@@ -1,0 +1,146 @@
+.auth-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 32px 16px;
+    background:
+        radial-gradient(ellipse at 50% 38%, rgba(90, 64, 16, .32), transparent 68%),
+        var(--bg);
+}
+
+.auth-card {
+    width: min(100%, 390px);
+    padding: 28px 24px 24px;
+    color: var(--text);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .28);
+}
+
+.auth-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.auth-logo {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 10px;
+    place-items: center;
+    color: var(--black);
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.auth-brand h1 {
+    margin: 0;
+    color: var(--gold2);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.auth-brand p {
+    margin: 3px 0 0;
+    color: var(--t3);
+    font-size: 12px;
+}
+
+.auth-divider {
+    height: 1px;
+    margin: 16px 0 20px;
+    background: var(--border);
+}
+
+.auth-card h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.auth-description {
+    max-width: 290px;
+    margin: 8px auto 16px;
+    color: var(--t3);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.auth-field {
+    margin-bottom: 15px;
+}
+
+.auth-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.auth-field label span {
+    color: var(--gold2);
+}
+
+.auth-field ::deep .form-control {
+    min-height: 42px;
+    padding: 9px 12px;
+    color: var(--text);
+    background-color: var(--bg3);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.auth-field ::deep .form-control:focus {
+    color: var(--text);
+    background-color: var(--bg3);
+    border-color: var(--gold2);
+    box-shadow: 0 0 0 3px rgba(201, 149, 42, .16);
+}
+
+.auth-validation-summary,
+.auth-field ::deep .validation-message {
+    margin-top: 5px;
+    color: var(--red);
+    font-size: 12px;
+}
+
+.auth-submit {
+    width: 100%;
+    min-height: 42px;
+    margin-top: 2px;
+    color: var(--black);
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-submit:disabled {
+    cursor: wait;
+    opacity: .7;
+}
+
+.auth-switch {
+    margin: 16px 0 0;
+    font-size: 12px;
+    text-align: center;
+}
+
+.auth-switch a {
+    color: var(--gold2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}

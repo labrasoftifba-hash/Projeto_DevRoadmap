@@ -1,0 +1,342 @@
+@page "/cadastro"
+@using System.ComponentModel.DataAnnotations
+@using DevRoadmap.Services
+@inject CadastroService CadastroService
+
+<PageTitle>@(EtapaConfirmacao ? "Confirmar e-mail" : "Cadastro") - DevRoadmap</PageTitle>
+
+<main class="auth-page">
+    <section class="auth-card @(EtapaConfirmacao ? "auth-card-verification" : string.Empty)"
+             aria-labelledby="cadastro-title">
+        <header class="auth-brand">
+            <div class="auth-logo" aria-hidden="true">DR</div>
+            <h1 id="cadastro-title">DevRoadmap</h1>
+            <p>GPS do aprendizado para Devs</p>
+        </header>
+
+        <div class="auth-divider"></div>
+
+        @if (EtapaConfirmacao)
+        {
+            <section class="verification-content" aria-labelledby="verification-title">
+                <div class="verification-icon" aria-hidden="true">✉</div>
+                <h2 id="verification-title">Verifique seu e-mail</h2>
+                <p class="verification-description">
+                    Enviamos um código de verificação para
+                    <strong>@Model!.Email</strong>. Digite-o abaixo para confirmar seu e-mail.
+                </p>
+
+                @if (!string.IsNullOrWhiteSpace(Mensagem))
+                {
+                    <div class="alert @(EmailConfirmado ? "alert-success" : "alert-info")" role="status">
+                        @Mensagem
+                    </div>
+                }
+
+                @if (EmailConfirmado)
+                {
+                    <a class="auth-submit auth-submit-link" href="/login">
+                        Ir para o login
+                    </a>
+                }
+                else
+                {
+                    <EditForm Model="Model" OnValidSubmit="HandleConfirmacao" FormName="cadastro">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="auth-validation-summary" />
+                        <InputHidden @bind-Value="Model!.Etapa" />
+                        <InputHidden @bind-Value="Model.Email" />
+
+                        <div class="verification-code" aria-label="Código de confirmação de seis dígitos">
+                            <InputText class="verification-digit" aria-label="Primeiro dígito"
+                                       inputmode="numeric" maxlength="1"
+                                       @bind-Value="Model.Codigo1" />
+                            <InputText class="verification-digit" aria-label="Segundo dígito"
+                                       inputmode="numeric" maxlength="1"
+                                       @bind-Value="Model.Codigo2" />
+                            <InputText class="verification-digit" aria-label="Terceiro dígito"
+                                       inputmode="numeric" maxlength="1"
+                                       @bind-Value="Model.Codigo3" />
+                            <InputText class="verification-digit" aria-label="Quarto dígito"
+                                       inputmode="numeric" maxlength="1"
+                                       @bind-Value="Model.Codigo4" />
+                            <InputText class="verification-digit" aria-label="Quinto dígito"
+                                       inputmode="numeric" maxlength="1"
+                                       @bind-Value="Model.Codigo5" />
+                            <InputText class="verification-digit" aria-label="Sexto dígito"
+                                       inputmode="numeric" maxlength="1"
+                                       @bind-Value="Model.Codigo6" />
+                        </div>
+
+                        <button type="submit" class="auth-submit" disabled="@Processando">
+                            Verificar código
+                        </button>
+                    </EditForm>
+
+                    <p class="verification-resend">
+                        Não recebeu o código?
+                        <button type="button" class="auth-link-button" @onclick="HandleReenvio"
+                                disabled="@Processando">
+                            Reenviar código
+                        </button>
+                    </p>
+                }
+            </section>
+
+            <div class="auth-footer-divider"></div>
+            <p class="auth-switch">
+                <a class="auth-link-button muted-link" href="/cadastro">
+                    Voltar ao cadastro
+                </a>
+            </p>
+        }
+        else
+        {
+            @if (!string.IsNullOrWhiteSpace(Mensagem))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @Mensagem
+                    @if (ExibirLinkConfirmacao)
+                    {
+                        <div class="mt-2">
+                            <a href="/confirmar-email">Abrir confirmação de e-mail</a>
+                        </div>
+                    }
+                </div>
+            }
+
+            <EditForm Model="Model" OnValidSubmit="HandleCadastro" FormName="cadastro">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="auth-validation-summary" />
+                <InputHidden @bind-Value="Model!.Etapa" />
+
+                <div class="auth-field">
+                    <label for="nome">Nome completo <span aria-hidden="true">*</span></label>
+                    <InputText id="nome" class="form-control" placeholder="Digite seu nome completo"
+                               autocomplete="name" @bind-Value="Model!.Nome" />
+                    <ValidationMessage For="@(() => Model!.Nome)" />
+                </div>
+
+                <div class="auth-field">
+                    <label for="email">E-mail <span aria-hidden="true">*</span></label>
+                    <InputText id="email" type="email" class="form-control" placeholder="seu@email.com"
+                               autocomplete="email" @bind-Value="Model!.Email" />
+                    <ValidationMessage For="@(() => Model!.Email)" />
+                </div>
+
+                <div class="auth-field">
+                    <label for="senha">Senha <span aria-hidden="true">*</span></label>
+                    <InputText id="senha" type="password" class="form-control" placeholder="Crie uma senha forte"
+                               autocomplete="new-password" @bind-Value="Model!.Senha" />
+                    <ValidationMessage For="@(() => Model!.Senha)" />
+                </div>
+
+                <button type="submit" class="auth-submit" disabled="@Processando">Criar conta</button>
+            </EditForm>
+
+            <p class="auth-switch">
+                Já tem uma conta? <a href="/login">Entrar</a>
+            </p>
+        }
+    </section>
+</main>
+
+@code {
+    [SupplyParameterFromForm(FormName = "cadastro")]
+    private CadastroModel? Model { get; set; }
+
+    private string Mensagem = string.Empty;
+    private bool EmailConfirmado;
+    private bool ExibirLinkConfirmacao;
+    private bool Processando;
+    private bool EtapaConfirmacao =>
+        string.Equals(Model?.Etapa, "confirmacao", StringComparison.Ordinal);
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+    }
+
+    private async Task HandleCadastro()
+    {
+        var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+        Processando = true;
+        ExibirLinkConfirmacao = false;
+
+        try
+        {
+            var resultado = await CadastroService.CadastrarUsuarioAsync(
+                model.Nome,
+                model.Email,
+                model.Senha);
+
+            if (resultado is ResultadoCadastro.CodigoEnviado or ResultadoCadastro.ContaCriadaEnvioFalhou)
+            {
+                model.Etapa = "confirmacao";
+                Mensagem = resultado == ResultadoCadastro.CodigoEnviado
+                    ? "Enviamos o código. Verifique sua caixa de entrada e também a pasta de spam."
+                    : "Sua conta foi criada, mas não conseguimos enviar o código agora. Aguarde um minuto e tente reenviar.";
+                LimparCodigo();
+                return;
+            }
+
+            Mensagem = resultado switch
+            {
+                ResultadoCadastro.EmailJaCadastrado => "Este e-mail já está cadastrado.",
+                ResultadoCadastro.DadosInvalidos => "Confira os dados informados e tente novamente.",
+                _ => "Não foi possível criar a conta. Tente novamente."
+            };
+            ExibirLinkConfirmacao = resultado == ResultadoCadastro.EmailJaCadastrado;
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private void HandleConfirmacao()
+    {
+        Processando = true;
+
+        try
+        {
+            var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+            var codigo = string.Concat(
+                model.Codigo1,
+                model.Codigo2,
+                model.Codigo3,
+                model.Codigo4,
+                model.Codigo5,
+                model.Codigo6);
+
+            var resultado = CadastroService.ConfirmarEmail(model.Email, codigo);
+            EmailConfirmado = resultado == ResultadoConfirmacaoEmail.Confirmado;
+            Mensagem = resultado switch
+            {
+                ResultadoConfirmacaoEmail.Confirmado =>
+                    "E-mail confirmado com sucesso. Agora você já pode entrar.",
+                ResultadoConfirmacaoEmail.CodigoInvalido =>
+                    "O código informado não é válido. Confira os números e tente novamente.",
+                ResultadoConfirmacaoEmail.CodigoExpirado =>
+                    "Este código expirou. Solicite um novo código.",
+                ResultadoConfirmacaoEmail.LimiteTentativasAtingido =>
+                    "O limite de tentativas foi atingido. Solicite um novo código após o intervalo de reenvio.",
+                _ => "Não foi possível confirmar este e-mail. Solicite um novo código ou volte ao cadastro."
+            };
+
+            if (!EmailConfirmado)
+            {
+                LimparCodigo();
+            }
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private async Task HandleReenvio()
+    {
+        Processando = true;
+
+        try
+        {
+            var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+            var resultado = await CadastroService.ReenviarCodigoAsync(model.Email);
+            Mensagem = resultado switch
+            {
+                ResultadoConfirmacaoEmail.CodigoReenviado =>
+                    "Enviamos um novo código. O código anterior não é mais válido.",
+                ResultadoConfirmacaoEmail.ReenvioAguardando =>
+                    "Aguarde pelo menos 60 segundos desde o último envio antes de solicitar outro código.",
+                ResultadoConfirmacaoEmail.ReenvioFalhou =>
+                    "Não conseguimos enviar o código agora. Tente novamente mais tarde.",
+                _ => "Não foi possível reenviar o código. Volte ao cadastro ou tente novamente."
+            };
+
+            if (resultado == ResultadoConfirmacaoEmail.CodigoReenviado)
+            {
+                LimparCodigo();
+            }
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private void LimparCodigo()
+    {
+        if (Model is null)
+        {
+            return;
+        }
+
+        Model.Codigo1 = string.Empty;
+        Model.Codigo2 = string.Empty;
+        Model.Codigo3 = string.Empty;
+        Model.Codigo4 = string.Empty;
+        Model.Codigo5 = string.Empty;
+        Model.Codigo6 = string.Empty;
+    }
+
+    private sealed class CadastroModel : IValidatableObject
+    {
+        public string Etapa { get; set; } = "cadastro";
+        public string Nome { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Senha { get; set; } = string.Empty;
+        public string Codigo1 { get; set; } = string.Empty;
+        public string Codigo2 { get; set; } = string.Empty;
+        public string Codigo3 { get; set; } = string.Empty;
+        public string Codigo4 { get; set; } = string.Empty;
+        public string Codigo5 { get; set; } = string.Empty;
+        public string Codigo6 { get; set; } = string.Empty;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!new EmailAddressAttribute().IsValid(Email)
+                || Email.Length > 250)
+            {
+                yield return new ValidationResult(
+                    "Informe um e-mail válido.",
+                    [nameof(Email)]);
+            }
+
+            if (Etapa == "confirmacao")
+            {
+                var codigos = new[] { Codigo1, Codigo2, Codigo3, Codigo4, Codigo5, Codigo6 };
+                if (codigos.Any(codigo => codigo.Length != 1 || !char.IsAsciiDigit(codigo[0])))
+                {
+                    yield return new ValidationResult(
+                        "Preencha os seis dígitos numéricos do código.",
+                        [nameof(Codigo1)]);
+                }
+
+                yield break;
+            }
+
+            if (string.IsNullOrWhiteSpace(Nome))
+            {
+                yield return new ValidationResult("Informe seu nome.", [nameof(Nome)]);
+            }
+            else if (Nome.Trim().Length > 150)
+            {
+                yield return new ValidationResult(
+                    "O nome deve ter no máximo 150 caracteres.",
+                    [nameof(Nome)]);
+            }
+
+            if (string.IsNullOrWhiteSpace(Senha))
+            {
+                yield return new ValidationResult("Informe sua senha.", [nameof(Senha)]);
+            }
+            else if (Senha.Length < 8)
+            {
+                yield return new ValidationResult(
+                    "A senha deve ter pelo menos 8 caracteres.",
+                    [nameof(Senha)]);
+            }
+        }
+    }
+}

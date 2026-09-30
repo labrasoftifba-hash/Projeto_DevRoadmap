@@ -1,10 +1,20 @@
 using DevRoadmap.Components;
+using DevRoadmap.Repositories;
+using DevRoadmap.Services;
+using DevRoadmap.Services.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddDataProtection();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddScoped<UsuarioRepository>();
+builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<CadastroService>();
+builder.Services.AddScoped<RecuperacaoSenhaService>();
+builder.Services.AddSingleton<RecuperacaoSenhaTokenService>();
+builder.Services.AddSingleton<GmailEmailSender>();
 
 var app = builder.Build();
 

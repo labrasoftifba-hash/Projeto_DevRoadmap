@@ -1,0 +1,88 @@
+@page "/recuperar-senha"
+@using System.ComponentModel.DataAnnotations
+@using DevRoadmap.Services
+@inject RecuperacaoSenhaService RecuperacaoSenhaService
+@inject NavigationManager Navigation
+
+<PageTitle>Recuperação de senha - DevRoadmap</PageTitle>
+
+<main class="auth-page">
+    <section class="auth-card" aria-labelledby="recovery-title">
+        <header class="auth-brand">
+            <div class="auth-logo" aria-hidden="true">DR</div>
+            <h1>DevRoadmap</h1>
+            <p>GPS do aprendizado para Devs</p>
+        </header>
+
+        <div class="auth-divider"></div>
+
+        <h2 id="recovery-title">Redefinição de senha</h2>
+        <p class="auth-description">
+            Digite seu e-mail para receber um código para redefinição da sua senha.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Mensagem))
+        {
+            <div class="alert alert-info" role="status">@Mensagem</div>
+        }
+
+        <EditForm Model="Model" OnValidSubmit="EnviarCodigo" FormName="solicitar-recuperacao">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="auth-validation-summary" />
+
+            <div class="auth-field">
+                <label for="email">E-mail <span aria-hidden="true">*</span></label>
+                <InputText id="email" type="email" class="form-control" placeholder="seu@email.com"
+                           autocomplete="email" @bind-Value="Model!.Email" />
+                <ValidationMessage For="@(() => Model!.Email)" />
+            </div>
+
+            <button type="submit" class="auth-submit" disabled="@Processando">
+                @(Processando ? "Enviando..." : "Enviar código")
+            </button>
+        </EditForm>
+
+        <p class="auth-switch">
+            <a href="/login">Voltar para login</a>
+        </p>
+    </section>
+</main>
+
+@code {
+    [SupplyParameterFromForm(FormName = "solicitar-recuperacao")]
+    private RecoveryModel? Model { get; set; }
+
+    private string Mensagem = string.Empty;
+    private bool Processando;
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+    }
+
+    private async Task EnviarCodigo()
+    {
+        var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
+        Processando = true;
+
+        try
+        {
+            await RecuperacaoSenhaService.SolicitarCodigoAsync(model.Email);
+            var token = RecuperacaoSenhaService.CriarTokenFluxo(model.Email);
+            Navigation.NavigateTo(
+                $"/confirmar-email?fluxo=recuperacao&token={Uri.EscapeDataString(token)}");
+        }
+        finally
+        {
+            Processando = false;
+        }
+    }
+
+    private sealed class RecoveryModel
+    {
+        [Required(ErrorMessage = "Informe seu e-mail.")]
+        [EmailAddress(ErrorMessage = "Informe um e-mail válido.")]
+        [StringLength(250, ErrorMessage = "O e-mail deve ter no máximo 250 caracteres.")]
+        public string Email { get; set; } = string.Empty;
+    }
+}
