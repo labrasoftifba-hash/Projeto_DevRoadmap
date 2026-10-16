@@ -1,14 +1,16 @@
 @page "/student/dashboard"
 @layout DevRoadmap.Components.Layout.Student.StudentLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @using DevRoadmap.Components.Layout.Global
 @using DevRoadmap.Components.Layout.Student.Dashboard
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Dashboard</PageTitle>
 
 <div>
     <div class="page-header">
         <div>
-            <p class="page-title">Olá, Vanessa!</p>
+            <p class="page-title">Olá, @NomeUsuario!</p>
             <p class="page-subtitle">Você está a 3 passos do próximo certificado</p>
         </div>
 
@@ -62,3 +64,20 @@
         <Pendency/>
     </div>
 </div>
+
+@code {
+    private string NomeUsuario = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var nome = authenticationState.User.Identity?.Name;
+
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            throw new InvalidOperationException("A sessão autenticada não contém o nome do usuário.");
+        }
+
+        NomeUsuario = nome;
+    }
+}

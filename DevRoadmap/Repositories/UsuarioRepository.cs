@@ -196,7 +196,7 @@ namespace DevRoadmap.Repositories
 
             const string verificarConta =
                 "SELECT EmailVerificado FROM Usuarios WITH (UPDLOCK, HOLDLOCK) " +
-                "WHERE Id = @UsuarioId AND (EmailVerificado IS NULL OR EmailVerificado = 1)";
+                "WHERE Id = @UsuarioId AND EmailVerificado = 1";
 
             using var contaCmd = new SqlCommand(verificarConta, conn, transaction);
             contaCmd.Parameters.Add("@UsuarioId", SqlDbType.Int).Value = usuarioId;

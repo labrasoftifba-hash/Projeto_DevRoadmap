@@ -2,6 +2,7 @@ using System.Net.Mail;
 using System.Text;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Requests;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
@@ -11,6 +12,7 @@ namespace DevRoadmap.Services.Email;
 
 public class GmailEmailSender
 {
+    private const string RedirectUri = "https://localhost:7246/oauth/gmail/callback";
     private const string TokenUserId = "confirmacaolabra";
     private const string SenderEmail = "confirmacaolabra@gmail.com";
     private readonly IDataStore _tokenStore;
@@ -21,6 +23,37 @@ public class GmailEmailSender
             Environment.SpecialFolder.LocalApplicationData);
         var pastaTokens = Path.Combine(pastaLocal, "DevRoadmap", "Google", "tokens");
         _tokenStore = new FileDataStore(pastaTokens, fullPath: true);
+    }
+
+    public async Task<bool> PossuiRefreshTokenValidoAsync(CancellationToken cancellationToken)
+    {
+        var token = await _tokenStore.GetAsync<TokenResponse>(TokenUserId);
+        if (token is null || string.IsNullOrWhiteSpace(token.RefreshToken))
+        {
+            return false;
+        }
+
+        var credential = new UserCredential(
+            CriarFluxoAutorizacao(),
+            TokenUserId,
+            token);
+
+        try
+        {
+            if (!await credential.RefreshTokenAsync(cancellationToken))
+            {
+                return false;
+            }
+
+            await _tokenStore.StoreAsync(TokenUserId, credential.Token);
+            return true;
+        }
+        catch (TokenResponseException exception)
+            when (exception.Error?.Error == "invalid_grant")
+        {
+            await _tokenStore.DeleteAsync<TokenResponse>(TokenUserId);
+            return false;
+        }
     }
 
     public string ObterCaminhoCredenciais()
@@ -42,6 +75,35 @@ public class GmailEmailSender
         }
 
         return caminhoCredenciais;
+    }
+
+    public string CriarUrlAutorizacao(string state)
+    {
+        var request = (GoogleAuthorizationCodeRequestUrl)
+            CriarFluxoAutorizacao().CreateAuthorizationCodeRequest(RedirectUri);
+        request.AccessType = "offline";
+        request.Prompt = "consent";
+        request.State = state;
+
+        return request.Build().ToString();
+    }
+
+    public async Task AutorizarAsync(string codigo, CancellationToken cancellationToken)
+    {
+        var flow = CriarFluxoAutorizacao();
+        var token = await flow.ExchangeCodeForTokenAsync(
+            TokenUserId,
+            codigo,
+            RedirectUri,
+            cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(token.RefreshToken))
+        {
+            throw new InvalidOperationException(
+                "O Google não retornou um refresh token. Revise o consentimento OAuth e tente autorizar novamente.");
+        }
+
+        await _tokenStore.StoreAsync(TokenUserId, token);
     }
 
     public async Task EnviarEmailAsync(

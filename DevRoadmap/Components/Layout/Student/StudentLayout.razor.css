@@ -32,7 +32,7 @@
 }
 
 .notification-dot {
-    position: absolute;
+    position: absolute; 
     top: 5px;
     right: 5px;
 
@@ -60,4 +60,20 @@
     border: 1px solid var(--gold);
 
     border-radius: 50%;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 220px;
+}
+
+.header-user-name {
+    color: var(--t2);
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

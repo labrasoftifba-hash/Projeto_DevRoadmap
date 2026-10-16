@@ -44,17 +44,17 @@ Este documento registra o estado do projeto e o contexto necessário para contin
 - Cadastro e login básicos foram confirmados pelo usuário como funcionando com o banco, antes da integração de confirmação de e-mail.
 - Senhas novas são gravadas com BCrypt; o fallback antigo SHA-256/texto puro foi removido.
 - Cadastro associa o usuário ao perfil padrão `Estudante`.
-- Cadastro e login têm `FormName` diferentes e recebem o POST por `[SupplyParameterFromForm]`.
-- A tela de cadastro e a de login usam um único modelo para formulário, campos e handler.
+- O cadastro usa `FormName` e `[SupplyParameterFromForm]`; o login agora envia um formulário HTML tradicional ao endpoint HTTP `/auth/login` para que o servidor possa emitir o cookie de autenticação.
+- A tela de cadastro mantém seu modelo e handler Blazor; o login usa um formulário HTTP separado para emitir o cookie.
 - O cadastro foi testado e concluiu a inserção após ajustar instância SQL e ordem da cláusula `OUTPUT`.
 - A migração para confirmação de e-mail foi executada pelo usuário; ele informou que o resultado no banco foi o esperado.
 - A aplicação compilou após a implementação de confirmação de e-mail, com saída redirecionada para uma pasta temporária para evitar a colisão com uma instância em execução: 0 erros e 0 avisos.
 - O usuário confirmou em 2026-09-30 que cadastro, verificação de e-mail e recuperação de senha funcionaram nos testes.
 - Em 2026-09-30, foi implementada a recuperação de senha e as alterações compilaram com 0 erros e 0 avisos. O usuário confirmou que aplicou `Database/03_Finalidade_Verificacao_Email.sql` no SQL Server.
-- Em 2026-09-30, durante os testes, o usuário reportou que o POST do código dizia não identificar o formulário e que “Voltar ao cadastro” não funcionava. Os `EditForm` têm nomes únicos. A configuração de interatividade foi inicialmente colocada em `Components/Routes.razor`, mas a captura seguinte ainda mostrava o postback estático. A configuração foi então movida para o ponto padrão do template Blazor, `<Routes @rendermode="InteractiveServer" />` em `Components/App.razor`; removido o `@rendermode` de `Routes.razor`. A captura posterior ainda mostrou o erro no endpoint `/confirmar-email`; foi mudado “Voltar ao cadastro” para link nativo `/cadastro`, sem dependência de evento interativo. A última compilação foi feita no diretório normal `bin/Debug/net10.0` e passou com 0 erros e 0 avisos. A confirmar com o usuário: parar toda instância antiga, iniciar com `dotnet run --project "C:\\Labrasoft(DevRoadMap)\\DevRoadmap\\DevRoadmap.csproj"` e retestar. Se o erro continuar, inspecionar a marcação HTML servida e a versão efetivamente iniciada antes de novas mudanças no formulário.
-- Investigação seguinte: a aplicação já em execução em `localhost:5052` serve `/confirmar-email` sem `action` e sem o campo oculto `_handler` que identifica `FormName`. Uma build isolada do código atual, iniciada temporariamente em `localhost:5053`, renderiza `_handler=confirmar-codigo`; ao enviar um código inválido para um e-mail de teste inexistente, o POST foi aceito e chegou à lógica do serviço (resposta normal da aplicação, não erro HTTP 400 de formulário). Isso comprova que `localhost:5052` está servindo uma versão/build antiga em relação ao código atual. A build isolada foi encerrada após o teste; não encerrar a instância que o usuário mantém em execução. Próximo passo: o usuário deve parar a própria instância/depurador e iniciá-la novamente a partir do projeto atualizado; depois testar cadastro e confirmação na porta normal. Ainda não houve teste de envio real de e-mail nem de cadastro real nesta execução.
+- Em 2026-09-30, durante os testes, o usuário reportou que o POST do código dizia não identificar o formulário e que “Voltar ao cadastro” não funcionava. A configuração de interatividade foi alinhada ao padrão do template Blazor em `Components/App.razor`, e links de retorno passaram a usar navegação nativa. A investigação da versão servida e a correção dos identificadores de formulário foram concluídas; posteriormente o usuário confirmou que os fluxos funcionaram.
+- Na investigação de `localhost:5052`, a instância antiga servia `/confirmar-email` sem `action` e sem `_handler`, enquanto uma build atual isolada renderizava `_handler=confirmar-codigo` e aceitava o POST. Isso identificou que aquela instância não continha o build esperado; o usuário depois reconstruiu/reiniciou o projeto e concluiu os testes com sucesso.
 - Em 2026-09-30, foi reproduzida na build atual a perda do estado scoped no POST tradicional da recuperação. A recuperação foi ajustada para usar tokens protegidos pelo ASP.NET Core Data Protection, com validade limitada: o e-mail não fica legível na URL e a autorização de redefinição contém o ID do usuário e o hash do código, não o código puro. A confirmação do código e a redefinição agora dependem também da verificação transacional do código ainda válido no banco; não dependem do circuito Blazor permanecer vivo entre POSTs.
-- Em 2026-09-30, `FormName` e `[SupplyParameterFromForm]` foram conferidos em cadastro, login, confirmação, solicitação de recuperação e redefinição; o modelo de login agora declara também `FormName="login"` explicitamente. A build isolada atual compilou com 0 erros e 0 avisos. Teste de navegação/POST na porta temporária confirmou que a solicitação de recuperação chega à página compartilhada, preserva o fluxo/e-mail por campos ocultos, aceita um POST de código inválido sem erro de formulário e continua exibindo o retorno esperado. Esse teste usou endereço `.invalid` e não envia e-mail nem altera usuário existente.
+- Historicamente, o login também usava `FormName="login"` e `[SupplyParameterFromForm]`; isso foi substituído pelo formulário HTTP tradicional quando a autenticação passou a emitir cookie. Cadastro, confirmação e recuperação continuam usando os próprios formulários Blazor e `FormName`.
 - Em 2026-09-30, o usuário compartilhou exceção durante digitação das caixas de código: `ChangeEventArgs` não podia ser convertido para `String`. A causa estava em `@bind-Value:event="oninput"` nas instâncias de `InputText` das páginas de cadastro e confirmação. O evento explícito foi removido das doze caixas para usar o evento `onchange` padrão compatível com `InputText`. O build isolado passou com 0 erros e 0 avisos; o teste interativo na página compartilhada `/confirmar-email` digitou e tabulou os seis dígitos, sem erros no console/circuito, e o POST chegou à lógica de confirmação. O usuário confirmou depois o funcionamento dos fluxos.
 - Em 2026-09-30, o usuário reportou erro de sintaxe próximo a `QUOTENAME` ao executar `Database/03_Finalidade_Verificacao_Email.sql`. O bloco de remoção dinâmica da chave primária foi corrigido para montar uma variável `NVARCHAR(MAX)` e executá-la com `sys.sp_executesql`.
 - O usuário informou em 2026-09-30 que executou a versão corrigida da migração de finalidade no banco. A migração `Database/03_Finalidade_Verificacao_Email.sql` está aplicada; não pedir para executar novamente salvo se algum teste revelar necessidade.
@@ -70,12 +70,17 @@ Este documento registra o estado do projeto e o contexto necessário para contin
 - `Components/Pages/Auth/RecuperarSenha.razor`: solicitação de código de recuperação em `/recuperar-senha`, com resposta genérica que não revela se o e-mail está cadastrado.
 - `Components/Pages/Auth/RedefinirSenha.razor`: definição de nova senha após validação do código.
 - `Components/Pages/Auth/Login.razor`: formulário de login, link para `/cadastro`, `/confirmar-email` e `/recuperar-senha`.
+- `Endpoints/AuthenticationEndpoints.cs`: valida POSTs antifalsificação de login/logout, verifica as credenciais e emite ou encerra o cookie de autenticação.
+- `Endpoints/GmailOAuthEndpoints.cs`: inicia a autorização local do Gmail e valida o callback OAuth com cookie `state`; endpoints disponíveis somente em Development e conexões loopback.
+- `Components/Routes.razor` e `Components/Pages/Student/Dashboard/StudentDashboard.razor`: aplicam a autorização da rota do painel.
+- `Components/Layout/Student/StudentLayout.razor` e `NavStudent.razor`: apresentam o nome/iniciais autenticados e o formulário de logout.
 - `Services/CadastroService.cs`: cadastro pendente, geração segura do código, hash SHA-256 do código, validade, contagem de tentativas, confirmação, reenvio e solicitação de envio pelo Gmail.
 - `Services/RecuperacaoSenhaService.cs`: solicitação genérica, validação do código de recuperação, limite de tentativas, comparação com a senha atual via BCrypt e redefinição de uso único.
 - `Services/RecuperacaoSenhaTokenService.cs`: protege tokens de e-mail/fluxo e de autorização com ASP.NET Core Data Protection e prazo limitado, evitando depender de estado scoped entre postbacks e evitando expor e-mail/código em texto legível na URL.
 - `Services/CodigoVerificacaoEmail.cs`: geração criptograficamente segura do código de seis dígitos, hash SHA-256 e comparação de hash em tempo constante.
 - `Services/UsuarioService.cs`: autentica com BCrypt; bloqueia contas com `EmailVerificado == false`, mantendo o acesso de contas antigas cujo campo é `NULL`.
 - `Services/Email/GmailEmailSender.cs`: envio pela Gmail API usando credenciais e token locais.
+- O OAuth local foi removido em 2026-09-29 no commit `c470e0c` junto com `GmailTestEndpoints.cs`, embora o envio continuasse exigindo um token já salvo. Foi restaurado nesta atualização: `https://localhost:7246/oauth/gmail/start` inicia a autorização e o callback grava o refresh token em `%LOCALAPPDATA%\DevRoadmap\Google\tokens`. O fluxo exige que o redirect URI no cliente OAuth seja exatamente `https://localhost:7246/oauth/gmail/callback`.
 - `Repositories/UsuarioRepository.cs`: persiste usuário, perfil e verificação; consulta código, conta tentativas, limita reenvio e confirma/consome o código transacionalmente.
 - `Models/VerificacaoEmail.cs`: representa os dados persistidos para a verificação.
 - `Repositories/BaseRepository.cs`: carrega e valida a connection string.
@@ -83,7 +88,8 @@ Este documento registra o estado do projeto e o contexto necessário para contin
 - `Database/01_Usuarios_E_Perfis.sql`: schema inicial de usuários, perfis e vínculo.
 - `Database/02_Verificacao_Email.sql`: migração aditiva para `EmailVerificado` e a tabela `VerificacoesEmail`; já executada pelo usuário.
 - `Database/03_Finalidade_Verificacao_Email.sql`: migração de finalidade (`Cadastro` ou `RecuperacaoSenha`) e chave primária composta; o usuário informou que já a executou.
-- `Program.cs`: registra os repositórios/serviços, ASP.NET Core Data Protection e o serviço de tokens de recuperação.
+- `Program.cs`: registra os repositórios/serviços, ASP.NET Core Data Protection, autenticação por cookie e autorização.
+- Nesta atualização, o login passou a criar uma sessão por cookie HttpOnly; o painel requer autenticação, o cabeçalho/saudação usam o nome da conta, e Sair encerra o cookie. A build isolada passou sem warnings/erros; verificações HTTP confirmaram redirecionamento do painel anônimo, presença do token antifalsificação no formulário e rejeição de POST sem token. O teste de credenciais reais ainda deve ser feito pelo usuário.
 - `appsettings.json`: connection string para a instância local; não copie segredos para este resumo.
 
 ## Progresso de 2026-09-29 e 2026-09-30 — confirmação de e-mail no cadastro
@@ -123,10 +129,11 @@ Este documento registra o estado do projeto e o contexto necessário para contin
 8. Antes de gravar, o serviço usa `BCrypt.Verify` para impedir que a nova senha seja igual à atual. O repositório consome o código e atualiza a senha na mesma transação; código ou autorização não podem ser reutilizados.
 9. `Program.cs` registra Data Protection e o serviço de tokens. O fluxo não depende de um objeto scoped sobreviver à transição entre POST e GET nem entre solicitações HTTP.
 
-### Estado do teste ponta a ponta
+### Estado do teste ponta a ponta — concluído
 
 - `Database/03_Finalidade_Verificacao_Email.sql` já foi executada pelo usuário no banco `DevRoadmap`. É uma migração aditiva que preserva os códigos existentes como finalidade `Cadastro` e mantém as contas e senhas atuais; não pedir nova execução sem evidência de problema no banco.
 - Em 2026-09-30, o usuário confirmou que os sistemas de cadastro, verificação de e-mail e recuperação de senha funcionaram perfeitamente nos testes.
+- Em 2026-09-30, as alterações foram commitadas e enviadas para `origin/main`: commit `5114917` (`feat: add email verification and password recovery`). O usuário confirmou que concluiu o push; a branch estava sincronizada e o worktree limpo logo após o envio.
 - O teste técnico com endereço `.invalid` descrito acima apenas validou formulário e POST; não enviou e-mail nem modificou uma conta. A confirmação de funcionamento ponta a ponta veio depois, nos testes do usuário.
 
 ### Cenários úteis em uma futura regressão
@@ -173,14 +180,15 @@ Este documento registra o estado do projeto e o contexto necessário para contin
 - O círculo decorativo atrás do indicador `78%` no dashboard foi removido de `Components/Layout/Student/Dashboard/NextStop.razor.css`, retirando `.next-stop::before`.
 - O indicador circular SVG e o texto `78%` foram preservados.
 
-## Próximos passos
+## Próximos passos acordados
 
-1. Reiniciar a aplicação para carregar as alterações compiladas e executar os testes reais pendentes acima, começando por cadastro + recebimento + confirmação + login.
-2. Resolver quaisquer falhas reveladas pelo teste antes de iniciar outra funcionalidade.
-3. Em seguida, conforme a ordem do projeto, implementar RF04 — permissões.
-4. Antes do teste de RF03, executar `Database/03_Finalidade_Verificacao_Email.sql`; então testar o fluxo de recuperação completo.
-5. Após concluir os testes de autenticação e permissões, continuar a próxima fase na ordem definida pelo projeto.
-6. O histórico completo de senhas antigas não está decidido nem implementado; apenas a senha atual é comparada.
+O usuário encerrou a etapa atual em 2026-09-30 e pretende continuar em outro dia. Os próximos itens expressamente deixados para depois são:
+
+1. Melhorar a acessibilidade das caixas de código: avançar o foco ao digitar, permitir colar o código completo e revisar navegação por teclado/leitor de tela.
+2. Decidir a regra de negócio para impedir nomes duplicados e implementá-la de forma consistente entre banco, model, repository, service e tela. Ainda não está definido se a comparação ignora maiúsculas/minúsculas, espaços ou acentos; esclarecer isso antes de alterar o schema.
+3. Se também for requisito permitir recuperação de senha para contas antigas com `EmailVerificado = NULL`, corrigir o tratamento de `DBNull` identificado na seção correspondente da documentação e testar esse caso.
+
+Não é necessário repetir agora o cadastro, o fluxo de e-mail, a migração `03` ou o push: o usuário confirmou os testes, informou a execução da migração e concluiu o push. O trabalho enviado está no commit `5114917` em `origin/main`.
 
 ### Conta remetente / Google API
 
@@ -194,10 +202,15 @@ Este documento registra o estado do projeto e o contexto necessário para contin
   ```
 
 - O token é salvo em `%LOCALAPPDATA%\DevRoadmap\Google\tokens`.
+- Em Development, a aplicação tenta renovar o refresh token na inicialização; se não existir ou o Google responder `invalid_grant`, abre o navegador no fluxo OAuth local. Isso exige iniciar pelo perfil HTTPS que escuta em `https://localhost:7246`.
+- O cliente OAuth local verificado é do tipo `web` (sem expor valores de credenciais); o URI de callback configurado no código é `https://localhost:7246/oauth/gmail/callback`.
 - O escopo utilizado é `GmailSend`; a consulta de perfil Gmail foi removida porque exigia escopo adicional.
 - Não pedir ao usuário para colar ou enviar JSON, segredo OAuth ou token.
 - Para implantação em rede/produção, mover credenciais e token para armazenamento seguro do servidor e revisar a configuração OAuth para o ambiente publicado. A configuração local atual não basta para hospedagem.
 
-## Estado do worktree no último registro
+## Estado Git no último registro
 
-Havia várias alterações não commitadas, incluindo páginas/serviços de autenticação, estilos, modelos, repositório, configuração SQL e arquivos de database. Não sobrescrever ou descartar essas mudanças. O build da implementação de confirmação de e-mail foi validado em pasta temporária com sucesso, sem avisos nem erros; o fluxo ainda aguarda teste funcional real.
+- Commit de autenticação, confirmação por e-mail, recuperação e documentação: `5114917`.
+- Branch `main` enviada e sincronizada com `origin/main`.
+- Após o push, `git status -sb` mostrou `## main...origin/main`, sem alterações pendentes.
+- Preservar sempre qualquer nova alteração que apareça no worktree ao retomar; o estado limpo é apenas o observado imediatamente após esse push.

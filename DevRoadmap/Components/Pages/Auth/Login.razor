@@ -1,7 +1,4 @@
 @page "/login"
-@using DevRoadmap.Services
-@inject UsuarioService UsuarioService
-@inject NavigationManager Navigation
 
 <PageTitle>Login - DevRoadmap</PageTitle>
 
@@ -15,30 +12,30 @@
 
         <div class="auth-divider"></div>
 
-        @if (!string.IsNullOrWhiteSpace(Mensagem))
+        @if (Erro == "credenciais")
         {
             <div class="alert alert-danger" role="alert">
-                @Mensagem
+                E-mail ou senha inválidos.
             </div>
         }
 
-        <EditForm Model="Model" OnValidSubmit="HandleLogin" FormName="login">
-            <DataAnnotationsValidator />
+        <form method="post" action="/auth/login">
+            <AntiforgeryToken />
 
             <div class="auth-field">
                 <label for="email">E-mail <span aria-hidden="true">*</span></label>
-                <InputText id="email" type="email" class="form-control" placeholder="seu@email.com"
-                           autocomplete="email" @bind-Value="Model!.Email" />
+                <input id="email" name="Email" type="email" class="form-control" placeholder="seu@email.com"
+                       autocomplete="email" required />
             </div>
 
             <div class="auth-field">
                 <label for="senha">Senha <span aria-hidden="true">*</span></label>
-                <InputText id="senha" type="password" class="form-control" placeholder="Digite sua senha"
-                           autocomplete="current-password" @bind-Value="Model!.Senha" />
+                <input id="senha" name="Senha" type="password" class="form-control" placeholder="Digite sua senha"
+                       autocomplete="current-password" required />
             </div>
 
             <button type="submit" class="auth-submit">Entrar</button>
-        </EditForm>
+        </form>
 
         <p class="auth-switch">
             Ainda não tem uma conta? <a href="/cadastro">Criar conta</a>
@@ -50,33 +47,6 @@
 </main>
 
 @code {
-    [SupplyParameterFromForm(FormName = "login")]
-    private LoginModel? Model { get; set; }
-    private string Mensagem = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        Model ??= new();
-    }
-
-    private void HandleLogin()
-    {
-        var model = Model ?? throw new InvalidOperationException("Os dados do formulário não foram recebidos.");
-        var usuario = UsuarioService.Autenticar(model.Email, model.Senha);
-
-        if (usuario is null)
-        {
-            Mensagem = "E-mail ou senha inválidos.";
-            return;
-        }
-
-        Mensagem = string.Empty;
-        Navigation.NavigateTo("/student/dashboard");
-    }
-
-    private class LoginModel
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Senha { get; set; } = string.Empty;
-    }
+    [SupplyParameterFromQuery(Name = "erro")]
+    private string? Erro { get; set; }
 }

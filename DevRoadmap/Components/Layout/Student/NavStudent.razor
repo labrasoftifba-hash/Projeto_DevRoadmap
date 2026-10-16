@@ -62,15 +62,19 @@
     </div>
 
     <div class="sidebar-footer">
-        <div class="avatar-sidebar">VV</div>
+        <div class="sidebar-footer-actions">
+            <button class="sidebar-footer-action" type="button" title="Configurações ainda indisponíveis"
+                    aria-label="Configurações ainda indisponíveis" disabled>
+                <i class="ti ti-settings" aria-hidden="true"></i>
+            </button>
 
-        <div>
-            <div class="sidebar-user-name">Vanessa Vilas</div>
-            <div class="sidebar-user-role">Estudante</div>
+            <form method="post" action="/auth/logout">
+                <AntiforgeryToken />
+                <button class="sidebar-footer-action sidebar-logout" type="submit"
+                        title="Sair da conta" aria-label="Sair da conta">
+                    <i class="ti ti-logout" aria-hidden="true"></i>
+                </button>
+            </form>
         </div>
-
-        <button class="sidebar-logout">
-            <i class="ti ti-logout"/>
-        </button>
     </div>
 </nav>

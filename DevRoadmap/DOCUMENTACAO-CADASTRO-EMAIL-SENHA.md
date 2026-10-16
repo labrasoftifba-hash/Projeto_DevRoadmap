@@ -1,8 +1,9 @@
 # Documentação completa: cadastro, verificação de e-mail e recuperação de senha
 
 **Data desta documentação:** 30/09/2026
-**Escopo:** somente as implementações de cadastro de conta, verificação do endereço de e-mail e recuperação/redefinição de senha, incluindo telas, serviços, repositório, modelos, envio por Gmail e SQL.
+**Escopo:** cadastro de conta, verificação do endereço de e-mail, recuperação/redefinição de senha e sessão por cookie do login estudantil, incluindo telas, serviços, repositório, envio por Gmail e SQL.
 **Situação informada pelo usuário:** os fluxos funcionaram nos testes. A melhoria de acessibilidade para avançar automaticamente entre os seis dígitos e a regra que impeça nomes duplicados ficam para uma etapa posterior e não fazem parte desta implementação.
+**Salvamento:** commit `5114917` (`feat: add email verification and password recovery`) enviado para `origin/main` em 30/09/2026, conforme confirmação do usuário.
 
 ---
 
@@ -53,7 +54,9 @@ Responsabilidades de cada camada:
 | `/confirmar-email` | Confirmar um cadastro pendente ou validar o código de recuperação. É uma página compartilhada; `fluxo=recuperacao` escolhe o modo da recuperação. |
 | `/recuperar-senha` | Receber o e-mail e solicitar um código de recuperação. |
 | `/redefinir-senha` | Receber e gravar uma nova senha após o código ser validado. |
-| `/login` | Autenticar por e-mail e senha; contas explicitamente pendentes não entram. |
+| `/login` | Receber as credenciais e enviar o POST HTTP para `/auth/login`; contas explicitamente pendentes não entram. |
+| `/auth/login` | Validar as credenciais e emitir o cookie autenticado. |
+| `/auth/logout` | Encerrar a sessão e remover o cookie autenticado. |
 
 ### Duas espécies diferentes de hash
 
@@ -111,6 +114,11 @@ O código de recuperação não é apagado somente por ter sido validado: ele é
 - [`Components/Pages/Auth/RecuperarSenha.razor`](./Components/Pages/Auth/RecuperarSenha.razor): solicitação de recuperação.
 - [`Components/Pages/Auth/RedefinirSenha.razor`](./Components/Pages/Auth/RedefinirSenha.razor): formulário de senha nova.
 - [`Components/Pages/Auth/Login.razor`](./Components/Pages/Auth/Login.razor): autenticação e links para cadastro e recuperação.
+- [`Endpoints/AuthenticationEndpoints.cs`](./Endpoints/AuthenticationEndpoints.cs): endpoints HTTP de login/logout, validação antifalsificação e emissão/encerramento do cookie.
+- [`Endpoints/GmailOAuthEndpoints.cs`](./Endpoints/GmailOAuthEndpoints.cs): endpoints locais de início e callback OAuth para autorizar o remetente.
+- [`Endpoints/GmailOAuthEndpoints.cs`](./Endpoints/GmailOAuthEndpoints.cs): início e callback do OAuth local do Gmail, mapeados somente em Development.
+- [`Components/Routes.razor`](./Components/Routes.razor) e [`Components/Pages/Student/Dashboard/StudentDashboard.razor`](./Components/Pages/Student/Dashboard/StudentDashboard.razor): exigência de autenticação na rota do painel.
+- [`Components/Layout/Student/StudentLayout.razor`](./Components/Layout/Student/StudentLayout.razor) e [`Components/Layout/Student/NavStudent.razor`](./Components/Layout/Student/NavStudent.razor): nome/iniciais da conta e ação para sair.
 - Arquivos `.razor.css` de cada página: apresentação visual isolada; não implementam regras de segurança ou persistência.
 
 ### Regras e integração
@@ -325,6 +333,14 @@ Monta o caminho esperado do arquivo OAuth e verifica que ele existe. Se não exi
 7. Prepara o MIME e invoca `Users.Messages.Send(..., "me").ExecuteAsync(cancellationToken)`.
 
 `"me"` representa a conta Gmail que autorizou o OAuth; não é o destinatário.
+
+#### Autorização local e renovação do token
+
+As rotas `GET /oauth/gmail/start` e `GET /oauth/gmail/callback` são mapeadas apenas quando `ASPNETCORE_ENVIRONMENT=Development`. O endpoint inicial aceita somente conexões loopback e HTTPS, cria um `state` aleatório, guarda-o em cookie HttpOnly/Secure com validade curta e redireciona para o consentimento Google.
+
+`CriarUrlAutorizacao` solicita o escopo mínimo `GmailSend`, `access_type=offline` e `prompt=consent`, para pedir ao Google uma autorização que possa ser renovada sem pedir consentimento a cada envio. O callback compara o `state` recebido com o cookie em tempo constante e só então troca o código OAuth por tokens. `AutorizarAsync` exige um refresh token antes de salvar a resposta com o ID `confirmacaolabra` no mesmo `FileDataStore` consumido por `EnviarEmailAsync`.
+
+No ambiente Development, ao iniciar pelo perfil HTTPS local, a aplicação tenta renovar o refresh token salvo. Se não houver token, ou se o Google responder `invalid_grant` (por exemplo, após expiração ou revogação), ela abre o navegador automaticamente para `https://localhost:7246/oauth/gmail/start`. Se necessário, também é possível abrir essa URL manualmente. Selecione a conta remetente correta e aceite o escopo de envio. A configuração do cliente OAuth do tipo **Aplicativo da Web** no Google Cloud deve conter exatamente `https://localhost:7246/oauth/gmail/callback` como URI de redirecionamento autorizado. O callback só funciona nesta máquina e no ambiente Development; não publicar estas rotas.
 
 #### `CriarFluxoAutorizacao`
 
@@ -709,6 +725,23 @@ Confere que o valor não é nulo/vazio e chama `BCrypt.Net.BCrypt.HashPassword`.
 
 O fallback antigo de SHA-256/texto puro para senha foi removido; SHA-256 permanece apenas no código temporário de e-mail.
 
+### Sessão por cookie no login estudantil
+
+O `Login.razor` envia um formulário HTML tradicional (`method="post"`, `action="/auth/login"`), com os campos nomeados `Email` e `Senha` e um `<AntiforgeryToken />`. Isso substitui o handler interativo de login: um cookie precisa ser escrito nos cabeçalhos de uma resposta HTTP, enquanto o handler de um circuito Blazor Interactive Server já está em uma conexão interativa e não deve tentar alterar esses cabeçalhos.
+
+Em `AuthenticationEndpoints`:
+
+1. `MapAuthenticationEndpoints` mapeia `/auth/login` como anônimo e `/auth/logout` como autenticado.
+2. `LoginAsync` valida o token antifalsificação, lê o formulário e chama o mesmo `UsuarioService.Autenticar`. Se as credenciais forem inválidas, redireciona com uma mensagem genérica; não revela se foi o e-mail ou a senha.
+3. Se a autenticação for válida, cria as claims `NameIdentifier` (ID) e `Name` (nome) e chama `SignInAsync`. O middleware serializa e protege essas claims no cookie; a senha não é armazenada nele.
+4. `LogoutAsync` valida novamente o token antifalsificação, chama `SignOutAsync` e redireciona ao login.
+
+Em `Program.cs`, o esquema cookie usa o nome `DevRoadmap.Auth`, `HttpOnly`, `SameSite=Lax` e validade de oito horas com renovação deslizante. Em ambiente `Development`, `SecurePolicy=SameAsRequest` permite que o perfil HTTP local funcione; fora de `Development`, `SecurePolicy=Always` exige HTTPS. `IsPersistent=false` significa que o cookie não é persistido como sessão de longo prazo do navegador; a validade do ticket, mesmo assim, é limitada pelas opções configuradas.
+
+`StudentDashboard.razor` declara `[Authorize]`. `Routes.razor` usa `AuthorizeRouteView`, e o middleware redireciona uma solicitação anônima do painel para `/login`. `StudentLayout.razor` lê `User.Identity.Name` de `AuthenticationStateProvider`, deriva as iniciais e exibe ambos no cabeçalho e na saudação. `NavStudent.razor` envia logout por POST; Configurações aparece desativado porque a página ainda não existe.
+
+Na validação técnica, a build isolada passou com zero erros e zero avisos. O GET de login produziu o token antifalsificação, o POST sem token recebeu HTTP 400 e a rota protegida do painel redirecionou uma pessoa não autenticada. O login com credenciais reais e o encerramento de uma sessão autenticada ainda precisam ser testados pelo usuário no ambiente local.
+
 ---
 
 ## 10. Recuperação e redefinição de senha
@@ -880,13 +913,18 @@ Chama o service com token e senha nova, mostra sucesso ou mensagens de senha igu
 
 ## 11. Registro e configuração em `Program.cs`
 
-- `AddDataProtection()`: registra a infraestrutura que assina/protege os tokens do fluxo de recuperação.
+- `AddDataProtection()`: registra a infraestrutura que protege tokens do fluxo de recuperação e os dados criptografados do cookie.
 - `AddRazorComponents().AddInteractiveServerComponents()`: configura componentes Blazor interativos no servidor.
+- `AddAuthentication(...).AddCookie(...)`: configura o esquema, atributos e duração do cookie.
+- `AddAuthorization()` e `AddCascadingAuthenticationState()`: habilitam autorização de rotas e disponibilizam a identidade aos componentes Blazor.
 - `AddScoped<UsuarioRepository>()`: um repository por escopo/request/circuito.
 - `AddScoped<UsuarioService>()`, `AddScoped<CadastroService>()`, `AddScoped<RecuperacaoSenhaService>()`: regras de negócio por escopo.
 - `AddSingleton<RecuperacaoSenhaTokenService>()`: serviço sem estado por usuário; recebe protetores do provider e pode ser compartilhado com segurança entre chamadas.
 - `AddSingleton<GmailEmailSender>()`: remetente sem estado da requisição; usa token store local e cliente Gmail criado para a operação.
 - `UseAntiforgery()`: habilita proteção antifalsificação para POSTs dos formulários.
+- `UseAuthentication()` e `UseAuthorization()`: validam a identidade do cookie e aplicam os requisitos de autorização antes das rotas.
+- `MapAuthenticationEndpoints()`: registra os endpoints HTTP de login e logout.
+- Em `Development`, `MapGmailOAuthEndpoints()` registra somente as rotas de autorização local do Gmail; fora desse ambiente elas não existem.
 - `MapRazorComponents<App>().AddInteractiveServerRenderMode()`: mapeia a aplicação e o modo interativo.
 
 Em implantação com múltiplas instâncias ou servidores, as chaves do Data Protection precisam ser persistidas e compartilhadas de forma segura. Se o conjunto de chaves for perdido ou diferente, tokens de recuperação ainda dentro do prazo deixam de ser válidos; isso não altera senhas, apenas exige iniciar novamente o fluxo.
@@ -900,12 +938,13 @@ Todo `EditForm` de POST precisa ter um nome (`FormName`) que corresponda a `[Sup
 | Tela | Nome do formulário | Propriedade alimentada |
 |---|---|---|
 | Cadastro e etapa de código | `cadastro` | `CadastroModel` |
-| Login | `login` | `LoginModel` |
 | Código (cadastro/recuperação) | `confirmar-codigo` | `ConfirmacaoModel` |
 | Solicitação de recuperação | `solicitar-recuperacao` | `RecoveryModel` |
 | Senha nova | `redefinir-senha` | `ResetModel` |
 
 A página não deve conter dois formulários com o mesmo nome ao mesmo tempo. No cadastro eles estão em blocos condicionais e apenas um é renderizado por vez.
+
+O login é uma exceção intencional: usa um formulário HTML com POST a `/auth/login`, e não um `EditForm`, porque o endpoint precisa emitir o cookie na resposta HTTP. O token de `<AntiforgeryToken />` é validado pelo endpoint antes de ler/processar credenciais.
 
 O erro observado tinha duas causas diferentes em momentos distintos:
 

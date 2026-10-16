@@ -129,60 +129,64 @@
 .sidebar-footer {
     display: flex;
     align-items: center;
-
-    gap: 9px;
-    padding: 11px 13px;
+    padding: 5px 8px;
     margin-top: auto;
 
     border-top: 1px solid var(--border);
 }
 
+.sidebar-footer-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    width: 100%;
+}
 
-.avatar-sidebar {
+.sidebar-footer-actions form {
+    width: 100%;
+    margin: 0;
+}
+
+.sidebar-footer-action {
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    width: 32px;
-    height: 32px;
-
-    font-size: 14px;
-    font-weight: 700;
-
-    color: var(--gold2);
-    background: var(--gdim);
-    border: 1px solid var(--gold);
-
-    border-radius: 50%;
-}
-
-.sidebar-user-name {
-    font-size: 14px;
-    font-weight: 600;
-
+    justify-content: flex-start;
+    gap: 7px;
+    width: 100%;
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 16px;
     color: var(--t2);
-}
-
-.sidebar-user-role {
-    margin-top: -4px;
-
-    font-size: 12px;
-
-    color: var(--t3);
-}
-
-.sidebar-logout {
-    margin-left: auto;
-
-    font-size: 18px;
-
-    color: var(--t3);
     background: transparent;
-    border: none;
-
+    border: 0;
+    border-radius: 6px;
     cursor: pointer;
+    transition: .16s;
 }
-.sidebar-logout:hover{
+
+.sidebar-footer-action i {
+    font-size: 16px;
+}
+
+.sidebar-footer-actions > .sidebar-footer-action::after {
+    content: "Configurações";
+}
+
+.sidebar-footer-actions form .sidebar-logout::after {
+    content: "Sair";
+}
+
+.sidebar-footer-action:hover:not(:disabled) {
+    color: var(--gold2);
+    background: var(--bg3);
+}
+
+.sidebar-footer-action:disabled {
+    cursor: not-allowed;
+    opacity: .8;
+}
+
+.sidebar-logout:hover {
     color: var(--orange);
 }
