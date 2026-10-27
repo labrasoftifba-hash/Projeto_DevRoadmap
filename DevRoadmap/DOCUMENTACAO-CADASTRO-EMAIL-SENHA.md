@@ -314,6 +314,15 @@ O remetente guarda os dados locais em `%LOCALAPPDATA%\DevRoadmap\Google\`:
 
 Esses arquivos contêm material sensível e não devem ser copiados para o repositório ou compartilhados. Esta documentação não inclui seus conteúdos.
 
+Para configurar uma máquina nova:
+
+1. No Google Cloud Console do projeto que tem a Gmail API habilitada, crie ou selecione um cliente OAuth do tipo **Aplicativo da Web**.
+2. Configure `https://localhost:7246/oauth/gmail/callback` como URI de redirecionamento autorizado.
+3. Baixe o arquivo JSON do cliente OAuth e coloque-o em `%LOCALAPPDATA%\DevRoadmap\Google\web-client-secret.json`.
+4. Inicie a aplicação pelo perfil HTTPS e autorize a conta remetente no navegador. O token será salvo localmente em `%LOCALAPPDATA%\DevRoadmap\Google\tokens`.
+
+Não envie o JSON OAuth nem o conteúdo da pasta `tokens` por chat, e-mail ou repositório.
+
 #### Construtor
 
 Monta a pasta local dos tokens e cria um `FileDataStore`. Não coloca segredos no código-fonte.

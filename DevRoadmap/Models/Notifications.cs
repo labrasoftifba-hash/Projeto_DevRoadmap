@@ -1,18 +1,27 @@
-public class Notifications
-{
-    private int _id { get; set; }
-    
-    private int _teacherId { get; set; }
-    private string _message { get; set; }
-    private bool _isRead { get; set; }
-    private DateTime _createdAt { get; set; }
 
-    public Notifications(int id, int teacherId, string message, bool isRead, DateTime createdAt)
+
+namespace DevRoadmap.Models
+{
+        public class Notifications
     {
-        _id = id;
-        _teacherId = teacherId;
-        _message = message;
-        _isRead = isRead;
-        _createdAt = createdAt;
+        public int Id { get; set; }
+        public int UsuarioId { get; set; }
+        public Usuario Usuario { get; set; } = null!;
+        public string Message { get; set; } = string.Empty;
+        public bool IsRead { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // public Notifications(int id, int teacherId, string message, bool isRead, DateTime createdAt)
+        // {
+        //     _id = id;
+        //     _teacherId = teacherId;
+        //     _message = message;
+        //     _isRead = isRead;
+        //     _createdAt = createdAt;
+        // }
+
+        // public Notifications(){
+
+        // }
     }
 }

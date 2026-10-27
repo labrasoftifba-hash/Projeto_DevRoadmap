@@ -26,8 +26,8 @@ namespace DevRoadmap.Services
                 return null;
             }
 
-            if (usuario.Senha.StartsWith("$2", StringComparison.Ordinal)
-                && BCrypt.Net.BCrypt.Verify(senha, usuario.Senha))
+            if (usuario.SenhaHash.StartsWith("$2", StringComparison.Ordinal)
+                && BCrypt.Net.BCrypt.Verify(senha, usuario.SenhaHash))
             {
                 if (usuario.EmailVerificado == false)
                 {

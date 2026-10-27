@@ -1,48 +1,91 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager NavigationManager
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="page">
-    <div>
-        <NavStudent />
-    </div>
-
-    <header class="main header">
-        <h1 class="header-title">Painel</h1>
-
-        <button class="header-action">
-            <i class="ti ti-bell" aria-hidden="true"></i>
-            <span class="notification-dot" aria-hidden="true"></span>
-        </button>
-        
-        <div class="header-user">
-            <span class="header-user-name">@NomeUsuario</span>
-            <span class="header-avatar" aria-hidden="true">@IniciaisUsuario</span>
+<CascadingValue Name="VisaoProfessor" Value="visaoProfessor">
+    <div class="page">
+        <div>
+            <NavStudent VisaoProfessor="visaoProfessor" VisaoProfessorChanged="AlterarVisaoProfessor" />
         </div>
-    </header>
 
-    <main class="main">
-        <article>
-            @Body
-        </article>
-    </main>
-</div>
+        <header class="main header">
+            <h1 class="header-title">@tituloPagina</h1>
+
+            <button class="header-action">
+                <i class="ti ti-bell" aria-hidden="true"></i>
+                <span class="notification-dot" aria-hidden="true"></span>
+            </button>
+            
+            <div class="header-user">
+                <span class="header-user-name">@nomeUsuario</span>
+                <span class="header-avatar" aria-hidden="true">@iniciaisUsuario</span>
+            </div>
+        </header>
+
+        <main class="main">
+            <article>
+                @Body
+            </article>
+        </main>
+    </div>
+</CascadingValue>
 
 @code {
-    private string NomeUsuario = string.Empty;
-    private string IniciaisUsuario = string.Empty;
+    private string nomeUsuario = string.Empty;
+    private string iniciaisUsuario = string.Empty;
+
+    private string tituloPagina
+    {
+        get
+        {
+            var rota = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).TrimEnd('/');
+
+            return rota switch
+            {
+                "trilhas/explorar" => "Explorar Trilhas",
+                "student/roteiro" => visaoProfessor ? "Minhas Trilhas" : "Meu Roteiro",
+                "student/dashboard" => "Painel",
+                _ => "DevRoadmap"
+            };
+        }
+    }
+
+    private bool visaoProfessor;
+
+    private void AlterarVisaoProfessor(bool valor)
+    {
+        visaoProfessor = valor;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        NavigationManager.LocationChanged += aoMudarDeRota;
+
+        var authenticationState = 
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var nome = authenticationState.User.Identity?.Name;
 
-        if (string.IsNullOrWhiteSpace(nome))
+        if(string.IsNullOrWhiteSpace(nome))
         {
-            throw new InvalidOperationException("A sessão autenticada não contém o nome do usuário.");
+            throw new InvalidOperationException(
+                "A sessão autenticada não contém o nome do usuário");
         }
 
-        NomeUsuario = nome;
-        IniciaisUsuario = ObterIniciais(nome);
+        nomeUsuario = nome;
+        iniciaisUsuario = ObterIniciais(nome);
+    }
+
+    private void aoMudarDeRota(
+        object? sender,
+        Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
+    {
+        _= InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= aoMudarDeRota;
     }
 
     private static string ObterIniciais(string nome)

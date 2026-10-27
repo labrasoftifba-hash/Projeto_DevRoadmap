@@ -2,24 +2,32 @@ namespace DevRoadmap.Models
 {
     public class Module
     {
-        private int _id { get; set; }
-        private int _trialId { get; set; }
-        private string _title { get; set; }
-        private string _description { get; set; }
-        private string _tags { get; set; }
-        private Content? _content { get; set; }
-         
-        public Module(int id, string title, string description, string tags)
-        {
-            _id = id;
-            _title = title;
-            _description = description;
-            _tags = tags;
-        }
+        public int Id { get; set; }
+        public int TrialId { get; set; }
+        public Trials Trial { get; set; } = null!;
+        public int Order { get; set; }            // antigo _moduleIdentifier
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new();
 
-        public void setContent(Content content)
-        {
-            _content = content;
-        }
+        //public Content? Content { get; set; }
+         
+        // public Module(int id, string title, string description, string tags)
+        // {
+        //     _id = id;
+        //     _title = title;
+        //     _description = description;
+        //     _tags = tags;
+        // }
+
+        // public Module()
+        // {
+            
+        // }
+
+        // public void setContent(Content content)
+        // {
+        //     _content = content;
+        // }
     }
 }

@@ -1,0 +1,174 @@
+@page "/trilhas/explorar"
+@layout DevRoadmap.Components.Layout.Student.StudentLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Explorar Trilhas</PageTitle>
+
+<div class="explore-trials">
+    <aside class="trials-filters">
+        <div class="trial-search">
+            <input type="search" aria-label="Buscar trilhas" placeholder="Digite o nome de uma trilha" />
+            <i class="ti ti-search" aria-hidden="true"></i>
+        </div>
+        <h2>Filtrar trilhas</h2>
+        <p class="filter-intro">Filtrar pesquisa:</p>
+
+        <div class="filter-options">
+            <div class="filter-option">
+                <span>Direção Técnica</span>
+                <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </div>
+            <div class="filter-option">
+                <span>Principal</span>
+                <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </div>
+            <div class="filter-option">
+                <span>Profissional</span>
+                <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </div>
+            <div class="filter-option">
+                <span>Nível de dificuldade</span>
+                <i class="ti ti-chevron-down" aria-hidden="true"></i>
+            </div>
+        </div>
+
+        <button class="apply-filters" type="button">Aplicar filtros</button>
+    </aside>
+
+    <section class="trials-list">
+        <h2>Todas as trilhas</h2>
+
+        <div class="trials-sort">
+            <span>Mais alunos <i class="ti ti-arrows-sort" aria-hidden="true"></i></span>
+            <span>Data de lançamento <i class="ti ti-arrows-sort" aria-hidden="true"></i></span>
+        </div>
+
+        <div class="trial-cards">
+            <article class="trial-card">
+                <span class="trial-new">NOVA</span>
+                <span class="trial-category">FRONT-END</span>
+                <div class="trial-icon" aria-hidden="true">
+                    <i class="ti ti-atom"></i>
+                </div>
+                <h3>React &amp; Ecossistema</h3>
+                <p class="trial-level">Intermediário · Prof. Ana Lima · 40h</p>
+                <p class="trial-description">
+                    Domine componentes, hooks avançados, gerenciamento de estado
+                    e testes no ecossistema React moderno.
+                </p>
+                <div class="trial-details">
+                    <span><i class="ti ti-users" aria-hidden="true"></i> 2,4k alunos</span>
+                    <span><i class="ti ti-clock" aria-hidden="true"></i> 40h</span>
+                    <span>Intermediário</span>
+                </div>
+                @if (visaoProfessor)
+                {
+                    <button class="trial-enroll" type="button" @onclick='() => AbrirVisualizacao("React & Ecossistema")'>
+                        Visualizar módulos
+                    </button>
+                }
+                else
+                {
+                    <button class="trial-enroll" type="button">Matricular-se</button>
+                }
+            </article>
+
+            <article class="trial-card">
+                <span class="trial-category">BACK-END</span>
+                <div class="trial-icon" aria-hidden="true">
+                    <i class="ti ti-hexagon"></i>
+                </div>
+                <h3>Node.js &amp; APIs REST</h3>
+                <p class="trial-level">Intermediário · Prof. Diego Nunes · 32h</p>
+                <p class="trial-description">
+                    Construa APIs RESTful escaláveis com autenticação JWT,
+                    validação e boas práticas de arquitetura.
+                </p>
+                <div class="trial-details">
+                    <span><i class="ti ti-users" aria-hidden="true"></i> 1,8k alunos</span>
+                    <span><i class="ti ti-clock" aria-hidden="true"></i> 32h</span>
+                    <span>Intermediário</span>
+                </div>
+                @if (visaoProfessor)
+                {
+                    <button class="trial-enroll" type="button" @onclick='() => AbrirVisualizacao("Node.js & APIs REST")'>
+                        Visualizar módulos
+                    </button>
+                }
+                else
+                {
+                    <button class="trial-enroll" type="button">Matricular-se</button>
+                }
+            </article>
+        </div>
+    </section>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(trilhaSelecionada))
+{
+    <div class="trial-preview-backdrop">
+        <section class="trial-preview" role="dialog" aria-modal="true" aria-labelledby="trial-preview-title">
+            <header class="trial-preview-header">
+                <div>
+                    <span>PRÉVIA DA ESTRUTURA</span>
+                    <h2 id="trial-preview-title">@trilhaSelecionada</h2>
+                    <p>Visualização resumida dos módulos para conhecer a organização da trilha.</p>
+                </div>
+                <button type="button" class="trial-preview-close"
+                        aria-label="Fechar prévia" @onclick="FecharVisualizacao">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+            </header>
+
+            <div class="trial-preview-modules">
+                @if (trilhaSelecionada == "React & Ecossistema")
+                {
+                    <article class="trial-preview-module">
+                        <span>01</span>
+                        <div><strong>Fundamentos do React</strong><small>Componentes, props e composição de interfaces.</small></div>
+                    </article>
+                    <article class="trial-preview-module">
+                        <span>02</span>
+                        <div><strong>Estado e efeitos</strong><small>Hooks e gerenciamento do ciclo de vida.</small></div>
+                    </article>
+                    <article class="trial-preview-module">
+                        <span>03</span>
+                        <div><strong>Testes de interface</strong><small>Práticas de teste para aplicações React.</small></div>
+                    </article>
+                }
+                else
+                {
+                    <article class="trial-preview-module">
+                        <span>01</span>
+                        <div><strong>Estrutura de uma API</strong><small>Rotas, métodos HTTP e organização inicial.</small></div>
+                    </article>
+                    <article class="trial-preview-module">
+                        <span>02</span>
+                        <div><strong>Validação e autenticação</strong><small>Validação de entradas e controle de acesso.</small></div>
+                    </article>
+                    <article class="trial-preview-module">
+                        <span>03</span>
+                        <div><strong>Persistência de dados</strong><small>Integração da API com uma camada de dados.</small></div>
+                    </article>
+                }
+            </div>
+        </section>
+    </div>
+}
+
+@code {
+    [CascadingParameter(Name = "VisaoProfessor")]
+    private bool visaoProfessor { get; set; }
+
+    private string? trilhaSelecionada;
+
+    private void AbrirVisualizacao(string nomeTrilha)
+    {
+        trilhaSelecionada = nomeTrilha;
+    }
+
+    private void FecharVisualizacao()
+    {
+        trilhaSelecionada = null;
+    }
+}

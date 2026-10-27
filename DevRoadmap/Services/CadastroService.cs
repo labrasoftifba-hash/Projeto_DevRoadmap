@@ -66,7 +66,7 @@ public class CadastroService
         {
             Nome = nome.Trim(),
             Email = email.Trim(),
-            Senha = UsuarioService.GerarHash(senha),
+            SenhaHash = UsuarioService.GerarHash(senha),
         };
 
         var usuarioId = _usuarioRepository.CadastrarPendente(

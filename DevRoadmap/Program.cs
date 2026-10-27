@@ -8,6 +8,8 @@ using DevRoadmap.Repositories;
 using DevRoadmap.Services;
 using DevRoadmap.Services.Email;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using DevRoadmap.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,8 @@ builder.Services.AddScoped<CadastroService>();
 builder.Services.AddScoped<RecuperacaoSenhaService>();
 builder.Services.AddSingleton<RecuperacaoSenhaTokenService>();
 builder.Services.AddSingleton<GmailEmailSender>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+       options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -103,6 +107,12 @@ static async Task AbrirAutorizacaoGmailSeNecessarioAsync(WebApplication app)
 
         app.Logger.LogInformation(
             "Não há refresh token do Gmail. O navegador foi aberto para autorizar a conta remetente.");
+    }
+    catch (FileNotFoundException)
+    {
+        app.Logger.LogWarning(
+            "A autorização automática do Gmail foi ignorada porque o arquivo de credenciais OAuth não foi encontrado. " +
+            "Configure web-client-secret.json para habilitar o envio de e-mails.");
     }
     catch (Exception exception) when (
         exception is IOException

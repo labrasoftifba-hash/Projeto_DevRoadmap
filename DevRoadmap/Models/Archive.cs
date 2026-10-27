@@ -8,21 +8,26 @@ namespace DevRoadmap.Models
 {
     public class Archive
     {
-        private int _archiveId {get; set;}
-        private int _contentId {get; set;}
-        private string? _name {get; set;}
-        private string? _storagePath {get; set;}
-        private string? _contentType {get; set;} 
-        private long _size {get; set;}
+        public int Id { get; set; }
+        public int ModuleId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string StoragePath { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public long Size { get; set; }
 
-        public Archive(int contentId, string? name, string? storagePath, string? contentType, long size)
-        {
-            _contentId = contentId;
-            _name = name;
-            _storagePath = storagePath;
-            _contentType = contentType;
-            _size = size;
-        }
+        // public Archive(int contentId, string? name, string? storagePath, string? contentType, long size)
+        // {
+        //     _contentId = contentId;
+        //     _name = name;
+        //     _storagePath = storagePath;
+        //     _contentType = contentType;
+        //     _size = size;
+        // }
+
+        // public Archive()
+        // {
+            
+        // }
     }
 }
 

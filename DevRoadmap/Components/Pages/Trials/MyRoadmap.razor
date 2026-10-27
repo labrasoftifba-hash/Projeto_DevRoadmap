@@ -1,0 +1,302 @@
+@page "/student/roteiro"
+@layout DevRoadmap.Components.Layout.Student.StudentLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject Microsoft.JSInterop.IJSRuntime JS
+<PageTitle>@(visaoProfessor ? "Minhas Trilhas" : "Meu Roteiro")</PageTitle>
+
+@if (visaoProfessor)
+{
+    <ManageTrials />
+}
+else
+{
+    <section class="student-roadmap">
+        <header class="student-roadmap-header">
+            <div>
+                <span class="roadmap-eyebrow">ROTEIRO DO ESTUDANTE</span>
+                <h2>Meu Roadmap</h2>
+                <p>Continue de onde parou e acompanhe sua evolução.</p>
+            </div>
+            <a class="roadmap-explore-link" href="/trilhas/explorar">
+                <i class="ti ti-compass" aria-hidden="true"></i>
+                Explorar trilhas
+            </a>
+        </header>
+
+        <div class="roadmap-trails">
+            @foreach (var trilha in trilhas)
+            {
+                <button class="roadmap-trail-choice @(trilha == trilhaSelecionada ? "is-selected" : "")"
+                        type="button" aria-pressed="@(trilha == trilhaSelecionada)"
+                        @onclick="() => SelecionarTrilha(trilha)">
+                    <span class="roadmap-trail-choice-icon" aria-hidden="true">
+                        <i class="ti @trilha.Icon"></i>
+                    </span>
+                    <span class="roadmap-trail-choice-info">
+                        <small>@trilha.Category · @trilha.Difficulty</small>
+                        <strong>@trilha.Title</strong>
+                        <span class="roadmap-trail-choice-progress">
+                            @trilha.Modules.Count(modulo => modulo.IsComplete)/@trilha.Modules.Count módulos concluídos
+                        </span>
+                    </span>
+                    <i class="ti ti-chevron-right roadmap-trail-choice-arrow" aria-hidden="true"></i>
+                </button>
+            }
+        </div>
+
+        <div class="roadmap-layout">
+            <main class="roadmap-main-column">
+                <section class="roadmap-trial-card">
+                    <header class="roadmap-trial-header">
+                        <i class="ti @trilhaSelecionada.Icon" aria-hidden="true"></i>
+                        <div>
+                            <small class="roadmap-category">@trilhaSelecionada.Category · EM ANDAMENTO</small>
+                            <h3>@trilhaSelecionada.Title</h3>
+                            <p>@trilhaSelecionada.Difficulty · @trilhaSelecionada.Teacher · @trilhaSelecionada.EstimatedTime horas</p>
+                        </div>
+                    </header>
+
+                    <div class="roadmap-section-heading">
+                        <div>
+                            <h3>Jornada de aprendizado</h3>
+                            <p>Escolha um módulo para ver a descrição preparada pelo professor.</p>
+                        </div>
+                        <span>@modulosConcluidos/@trilhaSelecionada.Modules.Count concluídos</span>
+                    </div>
+
+                    <div class="roadmap-module-list">
+                        @for (var index = 0; index < trilhaSelecionada.Modules.Count; index++)
+                        {
+                            var moduloIndex = index;
+                            var modulo = trilhaSelecionada.Modules[index];
+                            var concluido = modulo.IsComplete;
+                            var selecionado = moduloIndex == trilhaSelecionada.SelectedModuleIndex;
+
+                            <article class="roadmap-module @(concluido ? "is-complete" : "") @(selecionado ? "is-selected" : "")">
+                                <span class="roadmap-module-marker">@(concluido ? "✓" : (index + 1).ToString("00"))</span>
+                                <div class="roadmap-module-info">
+                                    <small class="roadmap-module-state">@(concluido ? "Concluído" : selecionado ? "Em andamento" : "Pendente")</small>
+                                    <strong>@modulo.Title</strong>
+                                    <small class="roadmap-module-summary">@modulo.Summary</small>
+                                </div>
+                                <button class="roadmap-module-open" type="button" @onclick="() => SelecionarModulo(moduloIndex)">
+                                    @(concluido ? "Revisar" : selecionado ? "Continuar" : "Abrir")
+                                    <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </article>
+                        }
+                    </div>
+
+                    <section class="roadmap-module-reader" id="roadmap-module-reader">
+                        <div class="roadmap-reader-heading">
+                            <div>
+                                <small class="roadmap-reader-label">MÓDULO @((trilhaSelecionada.SelectedModuleIndex + 1).ToString("00"))</small>
+                                <h3>@moduloSelecionado.Title</h3>
+                            </div>
+                            <span class="roadmap-reader-duration">
+                                <i class="ti ti-clock" aria-hidden="true"></i>
+                                @moduloSelecionado.Duration
+                            </span>
+                        </div>
+                        <div class="roadmap-module-description">
+                            <span>Descrição preparada pelo professor</span>
+                            <p>@moduloSelecionado.Description</p>
+                        </div>
+                        <div class="roadmap-reader-content">
+                            <i class="ti ti-player-play" aria-hidden="true"></i>
+                            <div>
+                                <strong>Próximo conteúdo</strong>
+                                <span>@moduloSelecionado.NextStep</span>
+                            </div>
+                            <span class="roadmap-content-preview">Prévia</span>
+                        </div>
+                        <button class="roadmap-complete-button" type="button"
+                                disabled="@moduloSelecionado.IsComplete"
+                                @onclick="ConcluirModuloSelecionado">
+                            <i class="ti ti-check" aria-hidden="true"></i>
+                            @(moduloSelecionado.IsComplete ? "Módulo concluído" : "Marcar como concluído")
+                        </button>
+                    </section>
+                </section>
+            </main>
+
+            <aside class="roadmap-sidebar">
+                <section class="roadmap-side-card roadmap-overall-progress">
+                    <div class="roadmap-side-card-heading">
+                        <h3>Progresso da trilha</h3>
+                        <span class="roadmap-progress-ring">@percentualProgresso%</span>
+                    </div>
+                    <div class="roadmap-progress-track"><span style="width: @percentualProgresso%"></span></div>
+                    <div class="roadmap-side-stats">
+                        <span>Módulos</span><strong>@modulosConcluidos/@trilhaSelecionada.Modules.Count</strong>
+                        <span>Habilidades</span><strong>@trilhaSelecionada.SkillCount</strong>
+                        <span>Avaliações</span><strong>@trilhaSelecionada.Assessments</strong>
+                    </div>
+                </section>
+
+                <section class="roadmap-side-card roadmap-next-step">
+                    <span class="roadmap-side-label">MÓDULO SELECIONADO</span>
+                    <h3>@moduloSelecionado.Title</h3>
+                    <p>Veja a descrição e a prévia antes de continuar seus estudos.</p>
+                    <button class="roadmap-module-navigation" type="button" @onclick="IrParaModulo">
+                        Ir para o módulo <i class="ti ti-arrow-down" aria-hidden="true"></i>
+                    </button>
+                </section>
+
+                <section class="roadmap-side-card roadmap-certification">
+                    <h3>Para certificar</h3>
+                    <div class="roadmap-certification-requirement"><span>Nota mínima</span><strong>70%</strong></div>
+                    <div class="roadmap-certification-requirement"><span>Progresso mínimo</span><strong class="roadmap-requirement-pending">Pendente</strong></div>
+                    <div class="roadmap-certification-requirement"><span>Projeto final</span><strong class="roadmap-requirement-pending">Pendente</strong></div>
+                </section>
+            </aside>
+        </div>
+    </section>
+}
+
+@code {
+    [CascadingParameter(Name = "VisaoProfessor")]
+    private bool visaoProfessor { get; set; }
+
+    private readonly List<RoadmapTrial> trilhas = new()
+    {
+        new()
+        {
+            Title = "React & Ecossistema",
+            Category = "FRONT-END",
+            Icon = "ti-atom",
+            Difficulty = "Intermediário",
+            Teacher = "Prof. Ana Lima",
+            EstimatedTime = 40,
+            SkillCount = "8/24",
+            Assessments = "1/4",
+            Modules = new()
+            {
+                new()
+                {
+                    Title = "Fundamentos do React",
+                    Summary = "JSX, componentes, props e estado básico",
+                    Description = "Conheça JSX, componentes, props e estado básico para criar interfaces reutilizáveis.",
+                    Duration = "35 min",
+                    NextStep = "Criando seu primeiro componente",
+                    IsComplete = true
+                },
+                new()
+                {
+                    Title = "Hooks Essenciais",
+                    Summary = "useState, useEffect e ciclo de vida",
+                    Description = "Aprenda a usar useState e useEffect para controlar estado e efeitos nos componentes.",
+                    Duration = "50 min",
+                    NextStep = "Estado local com useState",
+                    IsComplete = true
+                },
+                new()
+                {
+                    Title = "Hooks Avançados",
+                    Summary = "useReducer, useCallback, useMemo e useRef",
+                    Description = "Explore useReducer, useCallback, useMemo e useRef em situações práticas.",
+                    Duration = "70 min",
+                    NextStep = "Compartilhando lógica com custom hooks"
+                }
+            }
+        },
+        new()
+        {
+            Title = "Node.js & APIs REST",
+            Category = "BACK-END",
+            Icon = "ti-hexagon",
+            Difficulty = "Intermediário",
+            Teacher = "Prof. Diego Nunes",
+            EstimatedTime = 32,
+            SkillCount = "5/18",
+            Assessments = "0/3",
+            Modules = new()
+            {
+                new()
+                {
+                    Title = "Fundamentos de APIs",
+                    Summary = "HTTP, rotas e estrutura de uma API",
+                    Description = "Entenda HTTP, rotas e os princípios de organização de uma API.",
+                    Duration = "40 min",
+                    NextStep = "Criando sua primeira rota",
+                    IsComplete = true
+                },
+                new()
+                {
+                    Title = "Validação e autenticação",
+                    Summary = "Validação de entradas e controle de acesso",
+                    Description = "Conheça validação de entradas e conceitos de autenticação para proteger sua API.",
+                    Duration = "60 min",
+                    NextStep = "Validando uma requisição"
+                },
+                new()
+                {
+                    Title = "Persistência de dados",
+                    Summary = "Integração com banco de dados",
+                    Description = "Veja como conectar uma API a uma camada de dados e organizar operações.",
+                    Duration = "55 min",
+                    NextStep = "Consultando dados pela API"
+                }
+            }
+        }
+    };
+
+    private RoadmapTrial trilhaSelecionada = null!;
+
+    private RoadmapModule moduloSelecionado => trilhaSelecionada.Modules[trilhaSelecionada.SelectedModuleIndex];
+    private int modulosConcluidos => trilhaSelecionada.Modules.Count(modulo => modulo.IsComplete);
+    private int percentualProgresso => modulosConcluidos * 100 / trilhaSelecionada.Modules.Count;
+
+    protected override void OnInitialized() => trilhaSelecionada = trilhas[0];
+
+    private void SelecionarTrilha(RoadmapTrial trilha)
+    {
+        trilhaSelecionada = trilha;
+        trilhaSelecionada.SelectedModuleIndex = trilha.Modules.FindIndex(modulo => !modulo.IsComplete);
+        if (trilhaSelecionada.SelectedModuleIndex < 0)
+        {
+            trilhaSelecionada.SelectedModuleIndex = 0;
+        }
+    }
+
+    private void SelecionarModulo(int indice) => trilhaSelecionada.SelectedModuleIndex = indice;
+
+    private async Task IrParaModulo()
+    {
+        await JS.InvokeVoidAsync("roadmapUi.scrollToModule");
+    }
+
+    private void ConcluirModuloSelecionado()
+    {
+        moduloSelecionado.IsComplete = true;
+        var proximo = trilhaSelecionada.Modules.FindIndex(modulo => !modulo.IsComplete);
+        if (proximo >= 0)
+        {
+            trilhaSelecionada.SelectedModuleIndex = proximo;
+        }
+    }
+
+    private class RoadmapTrial
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public string Difficulty { get; set; } = string.Empty;
+        public string Teacher { get; set; } = string.Empty;
+        public int EstimatedTime { get; set; }
+        public string SkillCount { get; set; } = string.Empty;
+        public string Assessments { get; set; } = string.Empty;
+        public int SelectedModuleIndex { get; set; } = 2;
+        public List<RoadmapModule> Modules { get; set; } = new();
+    }
+
+    private class RoadmapModule
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Summary { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Duration { get; set; } = string.Empty;
+        public string NextStep { get; set; } = string.Empty;
+        public bool IsComplete { get; set; }
+    }
+}

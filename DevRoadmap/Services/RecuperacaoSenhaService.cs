@@ -187,8 +187,8 @@ public sealed class RecuperacaoSenhaService
             return ResultadoRedefinicaoSenha.CodigoExpirado;
         }
 
-        if (usuario.Senha.StartsWith("$2", StringComparison.Ordinal)
-            && BCrypt.Net.BCrypt.Verify(novaSenha, usuario.Senha))
+        if (usuario.SenhaHash.StartsWith("$2", StringComparison.Ordinal)
+            && BCrypt.Net.BCrypt.Verify(novaSenha, usuario.SenhaHash))
         {
             return ResultadoRedefinicaoSenha.IgualAtual;
         }

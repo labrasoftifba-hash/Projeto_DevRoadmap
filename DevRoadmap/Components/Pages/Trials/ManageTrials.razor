@@ -1,0 +1,325 @@
+@using DevRoadmap.Models
+
+<div class="manage-trials">
+    <div class="manage-trials-header">
+        <div>
+            <h2>Minhas trilhas</h2>
+            <p>Encontre uma trilha pelo tema, confira seu resumo e escolha o que deseja editar.</p>
+        </div>
+
+        <button class="manage-trial-create" type="button" @onclick="abrirFormulario">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+            Nova trilha
+        </button>
+    </div>
+
+    @if (trilhas.Count > 0)
+    {
+        <div class="manage-trial-grid">
+            @foreach (var trilha in trilhas)
+            {
+                <article class="manage-trial-card">
+                    <div class="manage-trial-card-top">
+                        <div class="manage-trial-icon" aria-hidden="true">
+                            <i class="ti ti-route"></i>
+                        </div>
+                        <span class="manage-trial-category">
+                            @(trilha.Skills.FirstOrDefault() ?? "TRILHA")
+                        </span>
+                    </div>
+
+                    <div class="manage-trial-card-content">
+                        <div class="manage-trial-card-title">
+                            <h3>@trilha.Name</h3>
+                            <span class="manage-trial-status @(trilha.IsActive ? "is-active" : "is-draft")">
+                                @(trilha.IsActive ? "No catálogo" : "Indisponível")
+                            </span>
+                        </div>
+                        <p class="manage-trial-description">@trilha.Description</p>
+
+                        <div class="manage-trial-skills">
+                            @foreach (var habilidade in trilha.Skills.Take(3))
+                            {
+                                <span class="manage-trial-skill">@habilidade</span>
+                            }
+                            @if (trilha.Skills.Count > 3)
+                            {
+                                <span class="manage-trial-skill-more">+@(trilha.Skills.Count - 3)</span>
+                            }
+                        </div>
+
+                        <div class="manage-trial-metadata">
+                            <span><i class="ti ti-chart-bar" aria-hidden="true"></i>@trilha.Difficulty</span>
+                            <span><i class="ti ti-clock" aria-hidden="true"></i>@trilha.EstimatedTime h</span>
+                            <span><i class="ti ti-book-2" aria-hidden="true"></i>@trilha.Modules.Count módulos</span>
+                        </div>
+                    </div>
+
+                    <div class="manage-trial-card-actions">
+                        <button class="manage-trial-edit" type="button" @onclick="() => abrirEdicao(trilha)">
+                            <i class="ti ti-pencil" aria-hidden="true"></i>
+                            Editar trilha
+                            <i class="ti ti-arrow-right manage-trial-edit-arrow" aria-hidden="true"></i>
+                        </button>
+                        <button class="manage-trial-delete" type="button"
+                                title="Excluir trilha" aria-label="Excluir trilha @trilha.Name">
+                            <i class="ti ti-trash" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="manage-trials-empty">
+            <i class="ti ti-route" aria-hidden="true"></i>
+            <p>Suas trilhas criadas aparecerão aqui para consulta e edição.</p>
+        </div>
+    }
+</div>
+
+@if (formularioAberto)
+{
+    <div class="trial-modal-backdrop">
+        <section class="trial-modal" role="dialog" aria-modal="true" aria-labelledby="trial-modal-title">
+            <header class="trial-modal-header">
+                <div>
+                    <h2 id="trial-modal-title">@(modoEdicao ? "Editar trilha" : "Criar trilha")</h2>
+                    <p>Organize as informações e a sequência de aprendizagem.</p>
+                </div>
+                <button type="button" class="trial-modal-close"
+                        aria-label="Fechar formulário" @onclick="fecharFormulario">
+                    <i class="ti ti-x" aria-hidden="true"></i>
+                </button>
+            </header>
+
+            <div class="trial-modal-body">
+                <div class="trial-form-grid">
+                    <label class="trial-field trial-field-full">
+                        Nome da trilha
+                        <input type="text" placeholder="Ex.: React e Ecossistema" />
+                    </label>
+
+                    <label class="trial-field">
+                        Dificuldade
+                        <select>
+                            <option value="">Selecione</option>
+                            <option>Iniciante</option>
+                            <option>Intermediário</option>
+                            <option>Avançado</option>
+                        </select>
+                    </label>
+
+                    <label class="trial-field">
+                        Tempo estimado (horas)
+                        <input type="number" min="20" value="20" />
+                    </label>
+
+                    <label class="trial-field trial-field-full">
+                        Descrição
+                        <textarea rows="4" placeholder="Explique o que o estudante aprenderá"></textarea>
+                    </label>
+
+                    <label class="trial-field trial-field-full">
+                        Disponibilidade
+                        <span class="trial-active-option">
+                            <input type="checkbox" checked />
+                            Disponível no catálogo
+                        </span>
+                    </label>
+
+                    <div class="trial-field trial-field-full">
+                        <label for="trial-skill-input">Habilidades (Skills)</label>
+                        <div class="trial-skills-input">
+                            <span class="trial-skill-tag">React</span>
+                            <span class="trial-skill-tag">JavaScript</span>
+                            <input id="trial-skill-input" type="text" placeholder="Digite uma habilidade" />
+                        </div>
+                    </div>
+
+                    <section class="trial-field trial-field-full trial-modules-section">
+                        <div class="trial-modules-heading">
+                            <div>
+                                <h3 class="trial-module-title">Módulos da trilha</h3>
+                                <p>Abra cada etapa para consultar ou editar seus detalhes.</p>
+                            </div>
+                        </div>
+
+                        @foreach (var modulo in modulosFormulario)
+                        {
+                            <details class="trial-module-editor" @key="modulo" open="@(modulo.Order == 1)">
+                                <summary class="trial-module-summary">
+                                    <span class="trial-module-order">@modulo.Order.ToString("00")</span>
+                                    <span class="trial-module-summary-text">
+                                        <strong>@(string.IsNullOrWhiteSpace(modulo.Title) ? "Novo módulo" : modulo.Title)</strong>
+                                        <small>@(string.IsNullOrWhiteSpace(modulo.Description) ? "Adicione uma descrição para esta etapa" : modulo.Description)</small>
+                                    </span>
+                                    <span class="trial-module-controls">
+                                        <button class="trial-module-order-button" type="button"
+                                                aria-label="Mover módulo @modulo.Order para cima"
+                                                title="Mover para cima"
+                                                disabled="@(modulosFormulario.IndexOf(modulo) == 0)"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => moverModulo(modulo, -1)">
+                                            <i class="ti ti-chevron-up" aria-hidden="true"></i>
+                                        </button>
+                                        <button class="trial-module-order-button" type="button"
+                                                aria-label="Mover módulo @modulo.Order para baixo"
+                                                title="Mover para baixo"
+                                                disabled="@(modulosFormulario.IndexOf(modulo) == modulosFormulario.Count - 1)"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => moverModulo(modulo, 1)">
+                                            <i class="ti ti-chevron-down" aria-hidden="true"></i>
+                                        </button>
+                                        <button class="trial-module-remove" type="button"
+                                                aria-label="Remover módulo @modulo.Order"
+                                                title="Remover módulo"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => removerModulo(modulo)">
+                                            <i class="ti ti-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </span>
+                                </summary>
+                                <div class="trial-module-fields">
+                                    <label class="trial-field">
+                                        Nome do módulo
+                                        <input type="text" placeholder="Ex.: Fundamentos" @bind="modulo.Title" />
+                                    </label>
+
+                                    <label class="trial-field trial-module-description-field">
+                                        Descrição do módulo
+                                        <textarea rows="3" placeholder="O que será aprendido nesta etapa"
+                                                  @bind="modulo.Description"></textarea>
+                                    </label>
+
+                                    <div class="trial-field trial-module-tags-field">
+                                        <span>Tags do módulo</span>
+                                        <div class="trial-skills-input">
+                                            @foreach (var tag in modulo.Tags)
+                                            {
+                                                <span class="trial-skill-tag">@tag</span>
+                                            }
+                                            <input type="text" placeholder="Digite uma tag" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        }
+
+                        <button class="trial-module-add" type="button" @onclick="adicionarModulo">
+                            <i class="ti ti-plus" aria-hidden="true"></i>
+                            Adicionar módulo
+                        </button>
+                    </section>
+                </div>
+            </div>
+
+            <footer class="trial-modal-footer">
+                <button class="trial-modal-cancel" type="button" @onclick="fecharFormulario">Cancelar</button>
+                <button class="trial-modal-save" type="button">
+                    <i class="ti @(modoEdicao ? "ti-device-floppy" : "ti-plus")" aria-hidden="true"></i>
+                    @(modoEdicao ? "Salvar alterações" : "Criar trilha")
+                </button>
+            </footer>
+        </section>
+    </div>
+}
+
+@code {
+    private List<Trials> trilhas = new()
+    {
+        new Trials
+        {
+            Name = "React & Ecossistema",
+            Description = "Domine componentes, hooks, gerenciamento de estado e testes no ecossistema React moderno.",
+            Difficulty = "Intermediário",
+            IsActive = true,
+            EstimatedTime = 40,
+            Skills = new() { "React", "JavaScript", "Hooks", "Testes" },
+            Modules = new()
+            {
+                new Module
+                {
+                    Order = 1,
+                    Title = "Fundamentos do React",
+                    Description = "Componentes, props e composição de interfaces.",
+                    Tags = new() { "Componentes", "JSX" }
+                },
+                new Module
+                {
+                    Order = 2,
+                    Title = "Estado e efeitos",
+                    Description = "Hooks e gerenciamento do ciclo de vida.",
+                    Tags = new() { "Hooks", "Estado" }
+                }
+            }
+        }
+    };
+    private List<Module> modulosFormulario = new();
+    private bool modoEdicao;
+    private bool formularioAberto;
+
+    private void abrirEdicao(Trials trilha)
+    {
+        modoEdicao = true;
+        modulosFormulario = trilha.Modules.Select(modulo => new Module
+        {
+            Order = modulo.Order,
+            Title = modulo.Title,
+            Description = modulo.Description,
+            Tags = new List<string>(modulo.Tags)
+        }).ToList();
+        formularioAberto = true;
+    }
+
+    private void abrirFormulario()
+    {
+        modoEdicao = false;
+        modulosFormulario = new List<Module>
+        {
+            new() { Order = 1 }
+        };
+        formularioAberto = true;
+    }
+
+    private void adicionarModulo()
+    {
+        modulosFormulario.Add(new Module { Order = modulosFormulario.Count + 1 });
+    }
+
+    private void removerModulo(Module modulo)
+    {
+        modulosFormulario.Remove(modulo);
+        atualizarOrdemModulos();
+    }
+
+    private void moverModulo(Module modulo, int direcao)
+    {
+        var indiceAtual = modulosFormulario.IndexOf(modulo);
+        var novoIndice = indiceAtual + direcao;
+        if (novoIndice < 0 || novoIndice >= modulosFormulario.Count)
+        {
+            return;
+        }
+
+        modulosFormulario.RemoveAt(indiceAtual);
+        modulosFormulario.Insert(novoIndice, modulo);
+        atualizarOrdemModulos();
+    }
+
+    private void atualizarOrdemModulos()
+    {
+        for (var indice = 0; indice < modulosFormulario.Count; indice++)
+        {
+            modulosFormulario[indice].Order = indice + 1;
+        }
+    }
+
+    private void fecharFormulario()
+    {
+        formularioAberto = false;
+        modoEdicao = false;
+        modulosFormulario.Clear();
+    }
+}

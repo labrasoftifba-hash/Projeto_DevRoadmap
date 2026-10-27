@@ -13,5 +13,10 @@ namespace DevRoadmap.Models
         public byte[] CodigoHash { get; set; } = [];
         public DateTime ExpiraEm { get; set; }
         public byte Tentativas { get; set; }
+
+        // public VerificacaoEmail()
+        // {
+            
+        // }
     }
 }

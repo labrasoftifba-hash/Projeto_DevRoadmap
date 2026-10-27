@@ -9,7 +9,7 @@ public static class GmailOAuthEndpoints
     private const string _callbackPath = "/oauth/gmail/callback";
     private const string _stateCookieName = "DevRoadmap.GmailOAuthState";
 
-    public static IEndpointRouteBuilder mapGmailOAuthEndpoints(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapGmailOAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("/oauth/gmail/start", IniciarAutorizacao);
         endpoints.MapGet(_callbackPath, FinalizarAutorizacaoAsync);

@@ -37,7 +37,7 @@ namespace DevRoadmap.Repositories
                 using var cmd = new SqlCommand(inserirUsuario, conn, transaction);
                 cmd.Parameters.AddWithValue("@Nome", user.Nome);
                 cmd.Parameters.AddWithValue("@Email", user.Email);
-                cmd.Parameters.AddWithValue("@Senha", user.Senha);
+                cmd.Parameters.AddWithValue("@Senha", user.SenhaHash);
                 id = Convert.ToInt32(cmd.ExecuteScalar());
             }
             catch (SqlException exception) when (exception.Number is 2601 or 2627)
@@ -116,7 +116,7 @@ namespace DevRoadmap.Repositories
                 Id = reader.GetInt32(0),
                 Nome = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
                 Email = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
-                Senha = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                SenhaHash = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
                 DataCadastro = reader.IsDBNull(4) ? DateTime.MinValue : reader.GetDateTime(4),
                 EmailVerificado = reader.IsDBNull(5) ? null : reader.GetBoolean(5),
             };

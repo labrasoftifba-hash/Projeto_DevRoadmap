@@ -9,20 +9,20 @@
     </div>
 
     <div class="sidebar-nav">
-        <div class="sidebar-item active">
+        <NavLink class="sidebar-item" href="/student/dashboard" Match="NavLinkMatch.All">
             <i class="ti ti-layout-dashboard icon-sm"/>
             Painel
-        </div>
+        </NavLink>
 
-        <div class="sidebar-item">
+        <NavLink class="sidebar-item" href="/student/roteiro" Match="NavLinkMatch.All">
             <i class="ti ti-map-2 icon-sm"/>
-            Meu Roteiro
-        </div>
+            @(VisaoProfessor ? "Minhas Trilhas" : "Meu Roteiro")
+        </NavLink>
 
-        <div class="sidebar-item">
+        <NavLink class="sidebar-item" href="/trilhas/explorar" Match="NavLinkMatch.All">
             <i class="ti ti-route icon-sm"/>
             Explorar Trilhas
-        </div>
+        </NavLink>
 
         <div class="sidebar-divider"/>
 
@@ -61,6 +61,15 @@
         </div>
     </div>
 
+    <div class="sidebar-profile-switch">
+        <label for="profile-view-select">Visualização de teste</label>
+        <select id="profile-view-select" value="@(VisaoProfessor ? "professor" : "estudante")"
+                @onchange="AlterarVisao">
+            <option value="estudante">Estudante</option>
+            <option value="professor">Professor</option>
+        </select>
+    </div>
+
     <div class="sidebar-footer">
         <div class="sidebar-footer-actions">
             <button class="sidebar-footer-action" type="button" title="Configurações ainda indisponíveis"
@@ -78,3 +87,16 @@
         </div>
     </div>
 </nav>
+
+@code {
+    [Parameter]
+    public bool VisaoProfessor { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisaoProfessorChanged { get; set; }
+
+    private Task AlterarVisao(ChangeEventArgs args)
+    {
+        return VisaoProfessorChanged.InvokeAsync(args.Value?.ToString() == "professor");
+    }
+}
