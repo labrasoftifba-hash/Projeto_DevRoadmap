@@ -5,7 +5,7 @@ namespace DevRoadmap.Models
     public class StudentTrial
     {
         public int Id { get; set; }
-        public int UsuarioId { get; set; }
+        public int StudentId { get; set; }
         public Usuario Usuario { get; set; } = default!;
         public int TrialId { get; set; }
         public Trials Trial { get; set; } = default!;
@@ -20,7 +20,7 @@ namespace DevRoadmap.Models
 
         public StudentTrial(int usuarioId, int trialId)
         {
-            UsuarioId = usuarioId;
+            StudentId = usuarioId;
             TrialId = trialId;
             StartedAt = DateTime.UtcNow;
         }

@@ -8,7 +8,8 @@ namespace DevRoadmap.Models
         public int Order { get; set; }            // antigo _moduleIdentifier
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<string> Tags { get; set; } = new();
+        public List<string> Skills { get; set; } = new();
+        
 
         //public Content? Content { get; set; }
          
