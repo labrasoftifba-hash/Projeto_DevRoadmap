@@ -1,6 +1,6 @@
 namespace DevRoadmap.Models
 {
-    public class CheckList
+    public class CheckListProgress
     {
         public int Id { get; set; }
         public int ModuleId { get; set; }

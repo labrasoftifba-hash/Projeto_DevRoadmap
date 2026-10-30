@@ -196,7 +196,7 @@
                                     <div class="trial-field trial-module-tags-field">
                                         <span>Tags do módulo</span>
                                         <div class="trial-skills-input">
-                                            @foreach (var tag in modulo.Tags)
+                                            @foreach (var tag in modulo.Skills)
                                             {
                                                 <span class="trial-skill-tag">@tag</span>
                                             }
@@ -244,14 +244,14 @@
                     Order = 1,
                     Title = "Fundamentos do React",
                     Description = "Componentes, props e composição de interfaces.",
-                    Tags = new() { "Componentes", "JSX" }
+                    Skills = new() { "Componentes", "JSX" }
                 },
                 new Module
                 {
                     Order = 2,
                     Title = "Estado e efeitos",
                     Description = "Hooks e gerenciamento do ciclo de vida.",
-                    Tags = new() { "Hooks", "Estado" }
+                    Skills = new() { "Hooks", "Estado" }
                 }
             }
         }
@@ -268,7 +268,7 @@
             Order = modulo.Order,
             Title = modulo.Title,
             Description = modulo.Description,
-            Tags = new List<string>(modulo.Tags)
+            Skills = new List<string>(modulo.Skills)
         }).ToList();
         formularioAberto = true;
     }

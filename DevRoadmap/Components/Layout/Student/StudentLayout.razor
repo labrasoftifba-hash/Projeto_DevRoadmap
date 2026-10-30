@@ -12,10 +12,50 @@
         <header class="main header">
             <h1 class="header-title">@tituloPagina</h1>
 
-            <button class="header-action">
-                <i class="ti ti-bell" aria-hidden="true"></i>
-                <span class="notification-dot" aria-hidden="true"></span>
-            </button>
+            <div class="notification-menu">
+                <button class="header-action" type="button"
+                        aria-label="@(notificacoesAbertas ? "Fechar notificações" : "Abrir notificações")"
+                        aria-expanded="@notificacoesAbertas"
+                        @onclick="AlternarNotificacoes">
+                    <i class="ti ti-bell" aria-hidden="true"></i>
+                    <span class="notification-count-badge">2</span>
+                </button>
+
+                @if (notificacoesAbertas)
+                {
+                    <section class="notification-popover" aria-label="Notificações recentes">
+                        <header class="notification-popover-header">
+                            <strong>Notificações</strong>
+                            <span>2 não lidas</span>
+                        </header>
+
+                        <article class="notification-preview">
+                            <i class="ti ti-clipboard-check" aria-hidden="true"></i>
+                            <div>
+                                <strong>Nova avaliação disponível</strong>
+                                <p>O quiz “React Hooks Avançados” foi publicado.</p>
+                                <small>Há 5 min</small>
+                            </div>
+                        </article>
+
+                        <article class="notification-preview">
+                            <i class="ti ti-circle-check" aria-hidden="true"></i>
+                            <div>
+                                <strong>Projeto aprovado</strong>
+                                <p>Seu projeto “Portfólio Responsivo” foi aprovado.</p>
+                                <small>Há 30 min</small>
+                            </div>
+                        </article>
+
+                        <NavLink class="notification-view-all"
+                                 href="/student/notificacoes"
+                                 @onclick="FecharNotificacoes">
+                            Ver todas as notificações
+                            <i class="ti ti-arrow-right" aria-hidden="true"></i>
+                        </NavLink>
+                    </section>
+                }
+            </div>
             
             <div class="header-user">
                 <span class="header-user-name">@nomeUsuario</span>
@@ -34,6 +74,9 @@
 @code {
     private string nomeUsuario = string.Empty;
     private string iniciaisUsuario = string.Empty;
+    private bool notificacoesAbertas;
+
+    private bool visaoProfessor;
 
     private string tituloPagina
     {
@@ -46,12 +89,22 @@
                 "trilhas/explorar" => "Explorar Trilhas",
                 "student/roteiro" => visaoProfessor ? "Minhas Trilhas" : "Meu Roteiro",
                 "student/dashboard" => "Painel",
+                "student/notificacoes" => "Notificações",
+                "student/avaliacoes" => "Avaliações",
                 _ => "DevRoadmap"
             };
         }
     }
 
-    private bool visaoProfessor;
+    private void AlternarNotificacoes()
+    {
+        notificacoesAbertas = !notificacoesAbertas;
+    }
+
+    private void FecharNotificacoes()
+    {
+        notificacoesAbertas = false;
+    }
 
     private void AlterarVisaoProfessor(bool valor)
     {
@@ -80,7 +133,8 @@
         object? sender,
         Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
     {
-        _= InvokeAsync(StateHasChanged);
+        notificacoesAbertas = false;
+        _ = InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()

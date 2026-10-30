@@ -31,17 +31,21 @@
     border-color: var(--b2);
 }
 
-.notification-dot {
+.notification-count-badge {
     position: absolute; 
-    top: 5px;
-    right: 5px;
-
-    width: 6px;
-    height: 6px;
-
+    top: -5px;
+    right: -5px;
+    display: grid;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    place-items: center;
+    color: var(--black);
     background: var(--orange);
-
-    border-radius: 50%;
+    border: 2px solid var(--bg2);
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 800;
 }
 
 .header-avatar {
@@ -76,4 +80,122 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.notification-menu {
+    position: relative;
+}
+
+.notification-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 60;
+    width: min(340px, calc(100vw - 32px));
+    padding: 14px;
+    color: var(--text);
+    background: var(--bg2);
+    border: 1px solid var(--b2);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
+}
+
+.notification-popover::before {
+    position: absolute;
+    top: -6px;
+    right: 13px;
+    width: 10px;
+    height: 10px;
+    background: var(--bg2);
+    border-top: 1px solid var(--b2);
+    border-left: 1px solid var(--b2);
+    content: "";
+    transform: rotate(45deg);
+}
+
+.notification-popover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.notification-popover-header span,
+.notification-preview small {
+    color: var(--t3);
+    font-size: 11px;
+}
+
+.notification-preview {
+    display: flex;
+    gap: 11px;
+    padding: 13px 2px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+}
+
+.notification-preview:hover {
+    background: rgba(255, 255, 255, .025);
+}
+
+.notification-preview > i {
+    flex: 0 0 auto;
+    color: var(--gold2);
+    font-size: 20px;
+}
+
+.notification-preview > div {
+    min-width: 0;
+    flex: 1;
+}
+
+.notification-preview strong {
+    font-size: 12px;
+}
+
+.notification-preview p {
+    overflow: hidden;
+    margin: 3px 0;
+    color: var(--t2);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notification-preview small {
+    display: block;
+}
+
+.notification-popover ::deep a.notification-view-all,
+.notification-popover ::deep a.notification-view-all:visited {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 12px;
+    padding: 9px;
+    color: var(--gold2);
+    border: 1px solid var(--gold);
+    border-radius: 7px;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.notification-popover ::deep a.notification-view-all:hover {
+    color: var(--gold2);
+    background: rgba(201, 149, 42, .1);
+}
+
+.notification-popover ::deep a.notification-view-all:focus-visible {
+    outline: 2px solid var(--gold2);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .notification-popover {
+        right: -8px;
+    }
 }

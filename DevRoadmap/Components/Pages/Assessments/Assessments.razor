@@ -1,0 +1,349 @@
+@page "/student/avaliacoes"
+@layout DevRoadmap.Components.Layout.Student.StudentLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Avaliações</PageTitle>
+
+<section class="assessments-page">
+    <header class="assessments-header">
+        <h2>Avaliações</h2>
+        <p>Acompanhe os prazos e o andamento das avaliações das trilhas.</p>
+    </header>
+
+<div class="assessment-overview">
+    <div class="assessment-summary">
+        <article class="assessment-card">
+            <span class="assessment-icon icon-blue">
+                <i class="ti ti-clipboard-list" aria-hidden="true"></i>
+            </span>
+            <div>
+                <span class="assessment-label">Total de avaliações</span>
+                <strong>18</strong>
+                <small>em todas as trilhas</small>
+            </div>
+        </article>
+
+        <article class="assessment-card">
+            <span class="assessment-icon icon-gold">
+                <i class="ti ti-calendar-event" aria-hidden="true"></i>
+            </span> 
+            <div>
+                <span class="assessment-label">Agendadas</span>
+                <strong>5</strong>
+                <small>com prazo próximo</small>
+            </div>
+        </article>
+
+        <article class="assessment-card">
+            <span class="assessment-icon icon-green">
+                <i class="ti ti-circle-check" aria-hidden="true"></i>
+            </span>
+            <div>
+                <span class="assessment-label">Concluídas</span>
+                <strong>12</strong>
+                <small>finalizadas</small>
+            </div>
+        </article>
+
+        <article class="assessment-card">
+            <span class="assessment-icon icon-purple">
+                <i class="ti ti-users" aria-hidden="true"></i>
+            </span>
+            <div>
+                <span class="assessment-label">Participações</span>
+                <strong>142</strong>
+                <small>nas avaliações</small>
+            </div>
+        </article>
+    </div>
+<section class="assessment-chart" aria-labelledby="assessment-chart-title">
+        <div class="chart-heading">
+            <h3 id="assessment-chart-title">Resumo das avaliações</h3>
+            <span>18 no total</span>
+        </div>
+
+        <div class="chart-content">
+            <div class="assessment-donut"
+                 role="img"
+                 aria-label="1 avaliação ativa, 5 agendadas e 12 concluídas">
+                <strong>18</strong>
+                <span>avaliações</span>
+            </div>
+
+            <ul class="assessment-legend">
+                <li>
+                    <span class="legend-dot active"></span>
+                    <span>Ativas</span>
+                    <strong>1</strong>
+                </li>
+                <li>
+                    <span class="legend-dot scheduled"></span>
+                    <span>Agendadas</span>
+                    <strong>5</strong>
+                </li>
+                <li>
+                    <span class="legend-dot completed"></span>
+                    <span>Concluídas</span>
+                    <strong>12</strong>
+                </li>
+            </ul>
+        </div>
+    </section>
+</div>
+
+<div class="assessment-content">
+<section class="assessment-list" aria-labelledby="assessment-list-title">
+    <header class="assessment-list-header">
+        <div>
+            <h3 id="assessment-list-title">Avaliações das trilhas</h3>
+            <p>Consulte o tipo, o prazo e o andamento de cada atividade.</p>
+        </div>
+        <span class="demo-label">@QuantidadeExibida avaliações</span>
+    </header>
+
+    <nav class="assessment-tabs" aria-label="Filtrar avaliações por status">
+        @foreach (var status in statusFiltros)
+        {
+            <button type="button"
+                    class="@(filtroStatus == status ? "is-active" : "")"
+                    aria-pressed="@(filtroStatus == status)"
+                    @onclick="() => filtroStatus = status">
+                @status
+            </button>
+        }
+    </nav>
+
+    <div class="assessment-table-wrapper">
+        <table class="assessment-table">
+            <thead>
+                <tr>
+                    <th scope="col">Avaliação</th>
+                    <th scope="col">Trilha / módulo</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Prazo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (filtroStatus == "Todas" || filtroStatus == "Ativas")
+                {
+                <tr>
+                    <td data-label="Avaliação">
+                        <div class="assessment-title-cell">
+                            <span class="assessment-row-icon quiz-icon">
+                                <i class="ti ti-help-circle" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <strong>Quiz: Fundamentos do React</strong>
+                                <small>10 questões</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Trilha / módulo">
+                        <strong>React &amp; Ecossistema</strong>
+                        <small>Módulo 1 · Fundamentos</small>
+                    </td>
+                    <td data-label="Tipo">
+                        <span class="assessment-type type-quiz">
+                            <i class="ti ti-help-circle" aria-hidden="true"></i>Quiz
+                        </span>
+                    </td>
+                    <td data-label="Status">
+                        <span class="assessment-status status-active">
+                            <span></span>Ativa
+                        </span>
+                    </td>
+                    <td class="assessment-date upcoming-date-cell" data-label="Prazo">
+                        <strong>02 nov. 2026</strong>
+                        <small>23:59</small>
+                    </td>
+                </tr>
+                }
+
+                @if (filtroStatus == "Todas" || filtroStatus == "Ativas")
+                {
+                <tr>
+                    <td data-label="Avaliação">
+                        <div class="assessment-title-cell">
+                            <span class="assessment-row-icon exercise-icon">
+                                <i class="ti ti-code" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <strong>Exercício: Flexbox Layout</strong>
+                                <small>Atividade prática</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Trilha / módulo">
+                        <strong>React &amp; Ecossistema</strong>
+                        <small>Módulo 2 · Layout</small>
+                    </td>
+                    <td data-label="Tipo">
+                        <span class="assessment-type type-exercise">
+                            <i class="ti ti-code" aria-hidden="true"></i>Exercício
+                        </span>
+                    </td>
+                    <td data-label="Status">
+                        <span class="assessment-status status-active">
+                            <span></span>Ativa
+                        </span>
+                    </td>
+                    <td class="assessment-date upcoming-date-cell" data-label="Prazo">
+                        <strong>04 nov. 2026</strong>
+                        <small>23:59</small>
+                    </td>
+                </tr>
+                }
+
+                @if (filtroStatus == "Todas" || filtroStatus == "Agendadas")
+                {
+                <tr>
+                    <td data-label="Avaliação">
+                        <div class="assessment-title-cell">
+                            <span class="assessment-row-icon project-icon">
+                                <i class="ti ti-rocket" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <strong>Projeto: Portfólio Responsivo</strong>
+                                <small>Projeto individual</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Trilha / módulo">
+                        <strong>React &amp; Ecossistema</strong>
+                        <small>Módulo 3 · Projeto final</small>
+                    </td>
+                    <td data-label="Tipo">
+                        <span class="assessment-type type-project">
+                            <i class="ti ti-rocket" aria-hidden="true"></i>Projeto
+                        </span>
+                    </td>
+                    <td data-label="Status">
+                        <span class="assessment-status status-scheduled">
+                            <span></span>Agendada
+                        </span>
+                    </td>
+                    <td class="assessment-date upcoming-date-cell" data-label="Prazo">
+                        <strong>06 nov. 2026</strong>
+                        <small>23:59</small>
+                    </td>
+                </tr>
+                }
+
+                @if (filtroStatus == "Todas" || filtroStatus == "Concluídas")
+                {
+                <tr>
+                    <td data-label="Avaliação">
+                        <div class="assessment-title-cell">
+                            <span class="assessment-row-icon quiz-icon">
+                                <i class="ti ti-help-circle" aria-hidden="true"></i>
+                            </span>
+                            <div>
+                                <strong>Quiz: JavaScript DOM</strong>
+                                <small>15 questões</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Trilha / módulo">
+                        <strong>JavaScript Avançado</strong>
+                        <small>Módulo 1 · DOM &amp; Eventos</small>
+                    </td>
+                    <td data-label="Tipo">
+                        <span class="assessment-type type-quiz">
+                            <i class="ti ti-help-circle" aria-hidden="true"></i>Quiz
+                        </span>
+                    </td>
+                    <td data-label="Status">
+                        <span class="assessment-status status-completed">
+                            <span></span>Concluída
+                        </span>
+                    </td>
+                    <td class="assessment-date completed-date-cell" data-label="Prazo">
+                        <strong>29 out. 2026</strong>
+                        <small>Encerrada</small>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <p class="assessment-note">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        Os prazos e status são ilustrativos e não são atualizados automaticamente.
+    </p>
+</section>
+
+<aside class="upcoming-assessments" aria-labelledby="upcoming-title">
+        <span class="upcoming-eyebrow">AGENDA</span>
+        <h3 id="upcoming-title">Próximos prazos</h3>
+        <p class="upcoming-intro">
+            Veja o que está chegando e organize seu tempo de estudo.
+        </p>
+
+        <div class="upcoming-list">
+            <article class="upcoming-item">
+                <time class="upcoming-date" datetime="2026-11-02">
+                    <strong>02</strong>
+                    <span>NOV</span>
+                </time>
+                <div>
+                    <h4>Quiz: Fundamentos do React</h4>
+                    <p>React &amp; Ecossistema</p>
+                </div>
+            </article>
+
+            <article class="upcoming-item">
+                <time class="upcoming-date" datetime="2026-11-04">
+                    <strong>04</strong>
+                    <span>NOV</span>
+                </time>
+                <div>
+                    <h4>Exercício: Flexbox Layout</h4>
+                    <p>React &amp; Ecossistema</p>
+                </div>
+            </article>
+
+            <article class="upcoming-item">
+                <time class="upcoming-date" datetime="2026-11-06">
+                    <strong>06</strong>
+                    <span>NOV</span>
+                </time>
+                <div>
+                    <h4>Projeto: Portfólio Responsivo</h4>
+                    <p>React &amp; Ecossistema</p>
+                </div>
+            </article>
+        </div>
+
+        <div class="study-tip">
+            <i class="ti ti-bulb" aria-hidden="true"></i>
+            <p>
+                <strong>Dica de organização</strong>
+                Comece pelo prazo mais próximo e reserve um tempo para revisar o conteúdo.
+            </p>
+        </div>
+    </aside>
+</div>
+
+</section>
+
+@code {
+    private readonly string[] statusFiltros =
+    {
+        "Todas",
+        "Ativas",
+        "Agendadas",
+        "Concluídas"
+    };
+
+    private string filtroStatus = "Todas";
+
+    private int QuantidadeExibida => filtroStatus switch
+    {
+        "Ativas" => 2,
+        "Agendadas" => 1,
+        "Concluídas" => 1,
+        _ => 4
+    };
+}

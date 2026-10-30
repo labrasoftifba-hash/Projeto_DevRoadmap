@@ -16,6 +16,23 @@ namespace DevRoadmap.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Archives",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ModuleId = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    StoragePath = table.Column<string>(type: "text", nullable: false),
+                    ContentType = table.Column<string>(type: "text", nullable: false),
+                    Size = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Archives", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Perfis",
                 columns: table => new
                 {
@@ -39,6 +56,7 @@ namespace DevRoadmap.Migrations
                     Difficulty = table.Column<string>(type: "text", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     EstimatedTime = table.Column<int>(type: "integer", nullable: false),
+                    KnowledgeArea = table.Column<string>(type: "text", nullable: false),
                     Skills = table.Column<List<string>>(type: "text[]", nullable: false),
                     RegisteredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -61,6 +79,22 @@ namespace DevRoadmap.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VerificacoesEmail", x => new { x.UsuarioId, x.Finalidade });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Videos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ContentId = table.Column<int>(type: "integer", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Url = table.Column<string>(type: "text", nullable: false),
+                    YoutubeId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Videos", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -97,7 +131,7 @@ namespace DevRoadmap.Migrations
                     Order = table.Column<int>(type: "integer", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Tags = table.Column<List<string>>(type: "text[]", nullable: false)
+                    Skills = table.Column<List<string>>(type: "text[]", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -161,27 +195,6 @@ namespace DevRoadmap.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Contents",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ModuleId = table.Column<int>(type: "integer", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    ToDoList = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Contents", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Contents_Modules_ModuleId",
-                        column: x => x.ModuleId,
-                        principalTable: "Modules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ModuleProgresses",
                 columns: table => new
                 {
@@ -206,51 +219,6 @@ namespace DevRoadmap.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Archives",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ContentId = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    StoragePath = table.Column<string>(type: "text", nullable: false),
-                    ContentType = table.Column<string>(type: "text", nullable: false),
-                    Size = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Archives", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Archives_Contents_ContentId",
-                        column: x => x.ContentId,
-                        principalTable: "Contents",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Videos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ContentId = table.Column<int>(type: "integer", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Url = table.Column<string>(type: "text", nullable: false),
-                    YoutubeId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Videos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Videos_Contents_ContentId",
-                        column: x => x.ContentId,
-                        principalTable: "Contents",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.InsertData(
                 table: "Perfis",
                 columns: new[] { "Id", "Cargo" },
@@ -260,17 +228,6 @@ namespace DevRoadmap.Migrations
                     { 2, "Teacher" },
                     { 3, "Admin" }
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Archives_ContentId",
-                table: "Archives",
-                column: "ContentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Contents_ModuleId",
-                table: "Contents",
-                column: "ModuleId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ModuleProgresses_ModuleId",
@@ -309,11 +266,6 @@ namespace DevRoadmap.Migrations
                 name: "IX_Usuarios_PerfilId",
                 table: "Usuarios",
                 column: "PerfilId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Videos_ContentId",
-                table: "Videos",
-                column: "ContentId");
         }
 
         /// <inheritdoc />
@@ -335,22 +287,19 @@ namespace DevRoadmap.Migrations
                 name: "Videos");
 
             migrationBuilder.DropTable(
+                name: "Modules");
+
+            migrationBuilder.DropTable(
                 name: "StudentTrials");
 
             migrationBuilder.DropTable(
-                name: "Contents");
+                name: "Trials");
 
             migrationBuilder.DropTable(
                 name: "Usuarios");
 
             migrationBuilder.DropTable(
-                name: "Modules");
-
-            migrationBuilder.DropTable(
                 name: "Perfis");
-
-            migrationBuilder.DropTable(
-                name: "Trials");
         }
     }
 }

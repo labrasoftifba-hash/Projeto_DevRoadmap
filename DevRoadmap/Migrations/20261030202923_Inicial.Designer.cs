@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DevRoadmap.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261021184215_Inicial")]
+    [Migration("20261030202923_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
@@ -34,12 +34,12 @@ namespace DevRoadmap.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ContentId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -54,36 +54,7 @@ namespace DevRoadmap.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContentId");
-
                     b.ToTable("Archives");
-                });
-
-            modelBuilder.Entity("DevRoadmap.Models.Content", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ModuleId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ToDoList")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModuleId")
-                        .IsUnique();
-
-                    b.ToTable("Contents");
                 });
 
             modelBuilder.Entity("DevRoadmap.Models.Module", b =>
@@ -101,7 +72,7 @@ namespace DevRoadmap.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<List<string>>("Tags")
+                    b.PrimitiveCollection<List<string>>("Skills")
                         .IsRequired()
                         .HasColumnType("text[]");
 
@@ -252,6 +223,10 @@ namespace DevRoadmap.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("KnowledgeArea")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("LastUpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -358,29 +333,7 @@ namespace DevRoadmap.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContentId");
-
                     b.ToTable("Videos");
-                });
-
-            modelBuilder.Entity("DevRoadmap.Models.Archive", b =>
-                {
-                    b.HasOne("DevRoadmap.Models.Content", null)
-                        .WithMany("Archives")
-                        .HasForeignKey("ContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("DevRoadmap.Models.Content", b =>
-                {
-                    b.HasOne("DevRoadmap.Models.Module", "Module")
-                        .WithOne("Content")
-                        .HasForeignKey("DevRoadmap.Models.Content", "ModuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("DevRoadmap.Models.Module", b =>
@@ -452,27 +405,6 @@ namespace DevRoadmap.Migrations
                         .IsRequired();
 
                     b.Navigation("Perfil");
-                });
-
-            modelBuilder.Entity("DevRoadmap.Models.Video", b =>
-                {
-                    b.HasOne("DevRoadmap.Models.Content", null)
-                        .WithMany("Videos")
-                        .HasForeignKey("ContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("DevRoadmap.Models.Content", b =>
-                {
-                    b.Navigation("Archives");
-
-                    b.Navigation("Videos");
-                });
-
-            modelBuilder.Entity("DevRoadmap.Models.Module", b =>
-                {
-                    b.Navigation("Content");
                 });
 
             modelBuilder.Entity("DevRoadmap.Models.StudentTrial", b =>

@@ -8,6 +8,7 @@ public class Trials
         public string Difficulty { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public int EstimatedTime { get; set; }
+        public string KnowledgeArea { get; set; } = string.Empty;
         public List<string> Skills { get; set; } = new();
         public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
         public DateTime LastUpdatedAt { get; set; } = DateTime.UtcNow;

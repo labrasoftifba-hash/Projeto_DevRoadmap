@@ -1,0 +1,153 @@
+@page "/student/notificacoes"
+@layout DevRoadmap.Components.Layout.Student.StudentLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<PageTitle>Notificações</PageTitle>
+
+<section class="notifications-page">
+    <header class="notifications-header">
+        <div>
+            <h2>Notificações</h2>
+            <p>Acompanhe atualizações, avaliações e atividades da sua conta.</p>
+        </div>
+        <span class="notifications-count">@notificacoes.Count</span>
+    </header>
+
+    <nav class="notifications-filters" aria-label="Filtrar notificações">
+        @foreach (var filtro in filtros)
+        {
+            <button type="button"
+                    class="@(filtroAtual == filtro ? "is-active" : "")"
+                    aria-pressed="@(filtroAtual == filtro)"
+                    @onclick="() => filtroAtual = filtro">
+                @filtro
+            </button>
+        }
+    </nav>
+
+    <label class="notifications-search">
+        <span class="ti ti-search" aria-hidden="true"></span>
+        <input type="search"
+               aria-label="Buscar notificações"
+               placeholder="Buscar notificações..."
+               @bind="termoBusca"
+               @bind:event="oninput" />
+    </label>
+
+    @if (notificacoesFiltradas.Any())
+    {
+        <div class="notifications-list">
+            @foreach (var notificacao in notificacoesFiltradas)
+            {
+                <article class="notification-card @(notificacao.IsRead ? "" : "is-unread")"
+                         data-category="@notificacao.Category">
+                    <span class="notification-icon" aria-hidden="true">
+                        <i class="ti @notificacao.Icon"></i>
+                    </span>
+                    <div class="notification-content">
+                        <h3>@notificacao.Title</h3>
+                        <p>@notificacao.Message</p>
+                        <small>@notificacao.Time</small>
+                    </div>
+                    <details class="notification-details">
+                        <summary>Ver detalhes</summary>
+                        <p>@notificacao.Details</p>
+                    </details>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="notifications-empty">Nenhuma notificação encontrada.</p>
+    }
+</section>
+
+@code {
+    private readonly string[] filtros =
+    {
+        "Todas",
+        "Não lidas",
+        "Avaliações",
+        "Projetos",
+        "Trilhas",
+        "Certificados"
+    };
+
+    private string filtroAtual = "Todas";
+    private string termoBusca = string.Empty;
+
+    private readonly List<NotificacaoDemo> notificacoes = new()
+    {
+        new()
+        {
+            Title = "Nova avaliação disponível",
+            Message = "O quiz “React Hooks Avançados” foi publicado na trilha React & Ecossistema.",
+            Details = "Acesse a trilha para consultar as instruções e o prazo da avaliação.",
+            Time = "Há 5 min",
+            Icon = "ti-clipboard-check",
+            Category = "Avaliações",
+            IsRead = false
+        },
+        new()
+        {
+            Title = "Projeto aprovado",
+            Message = "Seu projeto “Portfólio Responsivo” foi aprovado pelo professor.",
+            Details = "Confira os comentários do professor na área de projetos.",
+            Time = "Há 30 min",
+            Icon = "ti-circle-check",
+            Category = "Projetos",
+            IsRead = false
+        },
+        new()
+        {
+            Title = "Certificado emitido",
+            Message = "Você concluiu a trilha React & Ecossistema e recebeu um novo certificado.",
+            Details = "Seu certificado está disponível na área de certificados.",
+            Time = "Há 1 h",
+            Icon = "ti-trophy",
+            Category = "Certificados",
+            IsRead = true
+        },
+        new()
+        {
+            Title = "Novo feedback recebido",
+            Message = "Você recebeu feedback do professor na avaliação “Exercício: Flexbox Layout”.",
+            Details = "Acesse os resultados da avaliação para ver as observações do professor.",
+            Time = "Há 2 h",
+            Icon = "ti-message",
+            Category = "Avaliações",
+            IsRead = true
+        },
+        new()
+        {
+            Title = "Trilha atualizada",
+            Message = "A trilha Node.js & APIs REST foi atualizada com novos conteúdos.",
+            Details = "Consulte a lista de módulos para conferir as atualizações.",
+            Time = "Há 3 h",
+            Icon = "ti-speakerphone",
+            Category = "Trilhas",
+            IsRead = true
+        }
+    };
+
+    private IEnumerable<NotificacaoDemo> notificacoesFiltradas =>
+        notificacoes.Where(notificacao =>
+            (filtroAtual == "Todas"
+                || (filtroAtual == "Não lidas" && !notificacao.IsRead)
+                || notificacao.Category == filtroAtual)
+            && (string.IsNullOrWhiteSpace(termoBusca)
+                || notificacao.Title.Contains(termoBusca, StringComparison.OrdinalIgnoreCase)
+                || notificacao.Message.Contains(termoBusca, StringComparison.OrdinalIgnoreCase)));
+
+    private class NotificacaoDemo
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public string Details { get; set; } = string.Empty;
+        public string Time { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public bool IsRead { get; set; }
+    }
+}

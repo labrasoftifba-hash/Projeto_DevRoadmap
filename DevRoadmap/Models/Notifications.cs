@@ -1,5 +1,3 @@
-
-
 namespace DevRoadmap.Models
 {
         public class Notifications
